@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Load Calculation & Wiring Diagram Panel Engine</title>
+    <!-- SheetJS Excel Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #1e293b;
+            --accent: #2563eb;
+            --success: #16a34a;
+            --excel-green: #107c41;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+            --bg-slate: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-slate);
+            color: var(--text-dark);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 24px 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            color: #93c5fd;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .btn-primary { background-color: var(--accent); color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover { background-color: #15803d; }
+        .btn-excel { background-color: var(--excel-green); color: white; }
+        .btn-excel:hover { background-color: #0b5a2f; }
+        .btn-outline { background: transparent; border: 1px solid white; color: white; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr 320px;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-layout { grid-template-columns: 1fr; }
+            .grid-col-center { order: 2; }
+            .grid-col-left { order: 1; }
+            .grid-col-right { order: 3; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .form-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 14px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: normal;
+            margin-bottom: 0;
+            user-select: none;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            background-color: #fff;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border-left: 4px solid var(--accent);
+            padding: 16px;
+            border-radius: 8px;
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metric-card.success { border-left-color: var(--success); }
+        .metric-card.warning { border-left-color: var(--warning); }
+        .metric-card.danger { border-left-color: var(--danger); }
+
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 4px 0;
+        }
+
+        .metric-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #f1f5f9; font-weight: 700; color: var(--primary-dark); white-space: nowrap; }
+        tbody tr:hover { background-color: #f8fafc; }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .badge-phase-r { background: #fee2e2; color: #991b1b; }
+        .badge-phase-s { background: #fef3c7; color: #92400e; }
+        .badge-phase-t { background: #dbeafe; color: #1e40af; }
+        .badge-phase-3p { background: #f3e8ff; color: #6b21a8; }
+        
+        .badge-vdrop-ok { background: #dcfce7; color: #166534; }
+        .badge-vdrop-warn { background: #fef9c3; color: #854d0e; }
+        .badge-vdrop-danger { background: #fee2e2; color: #991b1b; }
+
+        .diagram-container {
+            background-color: #0b132b;
+            color: #48cae4;
+            padding: 24px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+            margin-top: 16px;
+        }
+
+        .diagram-header {
+            color: #fff;
+            border-bottom: 1px dashed #3a86ff;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .signature-card {
+            margin-top: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 12px;
+        }
+
+        .signature-box {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 180px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .signature-role {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .signature-space {
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 11px;
+            margin: 10px 0;
+            border: 1px dashed #cbd5e1;
+            border-radius: 4px;
+            background: #ffffff;
+        }
+
+        .signature-name { font-size: 13px; font-weight: 700; color: var(--text-dark); text-decoration: underline; }
+        .signature-title { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .signature-date { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(10px);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.show .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
+        .modal-body { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--primary-dark);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { background: white !important; padding: 0 !important; margin: 0 !important; color: black !important; font-size: 10pt; }
+            .no-print, header, .grid-col-left, .grid-col-right, .tabs, footer.no-print, .metrics-grid { display: none !important; }
+            .grid-layout { display: block !important; }
+            .card { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 10px !important; page-break-inside: auto; }
+            .tab-content { display: block !important; }
+            .print-only { display: block !important; }
+            .signature-card { border: 1px solid #000 !important; margin-top: 15px !important; padding: 12px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .signature-grid { gap: 12px !important; }
+            .signature-box { border: 1px solid #000 !important; background: white !important; padding: 8px !important; min-height: 120px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .signature-space { height: 45px !important; border: none !important; }
+            .diagram-container { background-color: white !important; color: black !important; border: 2px solid black; padding: 12px; }
+            .diagram-container * { color: black !important; }
+            table { font-size: 9pt !important; }
+            th, td { padding: 5px 6px !important; }
+            tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+        }
+
+        .print-only { display: none; }
+        .print-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+        .print-header h2 { font-size: 14pt; text-transform: uppercase; margin-bottom: 2px; }
+        .print-header h3 { font-size: 11pt; text-transform: uppercase; color: #333; margin-bottom: 4px; }
+        .print-header p { font-size: 9pt; }
+        .print-copyright { margin-top: 15px; text-align: center; font-size: 9px; color: #555; page-break-inside: avoid; }
+        .sld-box { font-family: 'Courier New', monospace; white-space: pre; line-height: 1.2; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="no-print">
+        <div>
+            <h1>Master Load Calculation & Wiring Diagram Engine</h1>
+            <p>Standar Perhitungan Beban Listrik, Penyeimbangan Fasa, Drop Tegangan & Rekomendasi Kabel / Protection (PUIL 2020)</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-excel" onclick="exportFullWorkbook()">📊 Download Excel (.xlsx)</button>
+            <button class="btn btn-success" onclick="window.print()">🖨️ Cetak Diagram & Rekap</button>
+        </div>
+    </header>
+
+    <div class="grid-layout">
+        <!-- 1. PARAMETER SYSTEM & PROYEK (KIRI) -->
+        <div class="grid-col-left no-print">
+            <div class="card">
+                <div class="card-title">1. Parameter System & Proyek</div>
+                
+                <div class="form-section-title">Informasi Proyek & Panel</div>
+                <div class="form-group">
+                    <label>Nama Proyek</label>
+                    <input type="text" id="projName" class="form-control" placeholder="Contoh: PT. ABC - PROJECT 1" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>Nama Panel</label>
+                    <input type="text" id="panelName" class="form-control" placeholder="Contoh: PANEL UTAMA PRODUKSI" oninput="calculateAll()">
+                </div>
+
+                <div class="form-section-title">Otorisasi & Penyusun Dokumen</div>
+                <div class="form-group">
+                    <label>Disusun Oleh (Penyusun)</label>
+                    <input type="text" id="prepBy" class="form-control" placeholder="Nama Penyusun" value="Dadan Hamdalah Kahfi" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Penyusunan</label>
+                    <input type="date" id="prepDate" class="form-control" onchange="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>Diperiksa Oleh (Manager Eng.)</label>
+                    <input type="text" id="checkBy" class="form-control" placeholder="Nama Manager Engineering" value="Budi Santoso, S.T." oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>Disetujui Oleh (Project Manager)</label>
+                    <input type="text" id="appBy" class="form-control" placeholder="Nama Project Manager" value="Ir. Ahmad Hidayat" oninput="calculateAll()">
+                </div>
+                
+                <div class="form-section-title">Spesifikasi Enclosure & Feeder</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipe Panel (Enclosure)</label>
+                        <select id="panelTypeSelect" class="form-control" onchange="calculateAll()">
+                            <option value="Wall Mounting (Indoor IP54)">Wall Mounting (Indoor IP54)</option>
+                            <option value="Free Standing (Indoor IP54)">Free Standing (Indoor IP54)</option>
+                            <option value="Outdoor Weatherproof (IP65)">Outdoor Weatherproof (IP65)</option>
+                            <option value="Modular Floor Standing">Modular Floor Standing</option>
+                            <option value="Desk / Console Panel">Desk / Console Panel</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ukuran Dimensi Panel</label>
+                        <select id="panelSizeSelect" class="form-control" onchange="toggleCustomPanelSize()">
+                            <option value="AUTO">⚙️ Auto Sesuai Beban</option>
+                            <option value="400 x 600 x 200 mm">400 x 600 x 200 mm</option>
+                            <option value="600 x 800 x 250 mm">600 x 800 x 250 mm</option>
+                            <option value="800 x 1000 x 300 mm">800 x 1000 x 300 mm</option>
+                            <option value="800 x 1200 x 400 mm">800 x 1200 x 400 mm</option>
+                            <option value="800 x 1800 x 600 mm">800 x 1800 x 600 mm</option>
+                            <option value="1000 x 2000 x 800 mm">1000 x 2000 x 800 mm</option>
+                            <option value="CUSTOM">✏️ Custom Size</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" id="customPanelSizeContainer" style="display: none;">
+                    <label>Input Ukuran Custom (P x T x L mm)</label>
+                    <input type="text" id="customPanelSize" class="form-control" placeholder="Contoh: 900 x 1500 x 500 mm" oninput="calculateAll()">
+                </div>
+
+                <div class="form-group">
+                    <label>Sumber Incomer Dari</label>
+                    <input type="text" id="projSource" class="form-control" placeholder="Contoh: LVMDB REAKTOR" oninput="calculateAll()">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Sistem Voltase</label>
+                        <select id="sysPhase" class="form-control" onchange="calculateAll()">
+                            <option value="3P">3-Phase 380V / 220V</option>
+                            <option value="1P">1-Phase 220V</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cos Phi (Power Factor)</label>
+                        <input type="number" id="sysCosPhi" class="form-control" value="0.85" step="0.01" onchange="calculateAll()">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Safety Factor Breaker</label>
+                        <input type="number" id="safetyFactor" class="form-control" value="1.25" step="0.05" onchange="calculateAll()">
+                    </div>
+                    <div class="form-group">
+                        <label>Spare Margin (%)</label>
+                        <input type="number" id="spareMargin" class="form-control" value="20" onchange="calculateAll()">
+                    </div>
+                </div>
+
+                <div class="form-row" style="background-color: #f1f5f9; padding: 10px; border-radius: 6px; margin-top: 6px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="color:var(--primary-dark);">Panjang Feeder Incomer (m)</label>
+                        <input type="number" id="mainCableLen" class="form-control" placeholder="0" min="1" step="1" onchange="calculateAll()">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="color:var(--primary-dark);">Tipe Kabel Incomer Utama</label>
+                        <select id="mainCableType" class="form-control" onchange="calculateAll()">
+                            <option value="NYY">NYY (Cu/PVC/PVC Outdoor/Tray)</option>
+                            <option value="NYFGBY">NYFGBY (Armored Bawah Tanah)</option>
+                            <option value="FRC">FRC (Fire Resistant Cable)</option>
+                            <option value="N2XSY">N2XSY / XLPE (Insulasi XLPE)</option>
+                            <option value="NYM">NYM (Indoor Conduit/Tray)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 8px;">
+                        <label style="color:var(--primary-dark);">Jumlah Inti Kabel Main Incomer</label>
+                        <select id="mainCableCore" class="form-control" onchange="calculateAll()">
+                            <option value="AUTO">Auto (3P: 4 Core R,S,T,N / 1P: 3 Core P,N,G)</option>
+                            <option value="3C">3 Core (Phase, Netral, Ground)</option>
+                            <option value="4C">4 Core (R, S, T, Netral)</option>
+                            <option value="5C">5 Core (R, S, T, Netral, Ground)</option>
+                            <option value="1C">1 Core / Single Core (Paralel)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 10px;">
+                        <label class="checkbox-label" style="color:var(--primary-dark);">
+                            <input type="checkbox" id="mainConduitOption" onchange="calculateAll()" checked>
+                            🔌 Menggunakan Pipa Conduit
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 6px;">
+                        <label class="checkbox-label" style="color:var(--primary-dark);">
+                            <input type="checkbox" id="mainGroundType" onchange="calculateAll()" checked>
+                            ⚡ Kabel Grounding Terpisah (+ NYA)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AREA TENGAH (METRICS, TABLE & SLD) -->
+        <div class="grid-col-center">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Total Connected Load</div>
+                    <div class="metric-value" id="dispTotalWatt">0.00 kW</div>
+                    <div class="metric-sub" id="dispTotalkVA">0.00 kVA</div>
+                </div>
+                <div class="metric-card success">
+                    <div class="metric-label">Total Max Demand Load</div>
+                    <div class="metric-value" id="dispDemandWatt">0.00 kW</div>
+                    <div class="metric-sub" id="dispDemandAmp">0.0 A (Total In)</div>
+                </div>
+                <div class="metric-card warning">
+                    <div class="metric-label">Rekomendasi Main Breaker</div>
+                    <div class="metric-value" id="dispMainBreaker">MCCB 6A</div>
+                    <div class="metric-sub" id="dispBreakerSpec">Safety Factor 125%</div>
+                </div>
+                <div class="metric-card danger">
+                    <div class="metric-label">Rekomendasi Feeder Main</div>
+                    <div class="metric-value" id="dispMainCable">-</div>
+                    <div class="metric-sub" id="dispKHA">KHA & Drop Tegangan</div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tabs no-print">
+                <button class="tab-btn active" onclick="switchTab('tab-schedule', event)">📊 Schedule Master Load</button>
+                <button class="tab-btn" onclick="switchTab('tab-wiring', event)">⚡ Wiring Diagram (Single Line)</button>
+            </div>
+
+            <!-- Printable Header for Print Mode -->
+            <div class="print-only print-header">
+                <h2>REKAPITULASI DOKUMEN MASTER LOAD & WIRING DIAGRAM PANEL</h2>
+                <h3 id="printPanelTitle">-</h3>
+                <p id="printSub">Proyek: <span id="printProjName">-</span> | Sumber: <span id="printProjSource">-</span></p>
+                <p style="font-size: 9pt; margin-top: 4px;">Tanggal Perhitungan: <span id="printDate"></span></p>
+            </div>
+
+            <div id="tab-schedule" class="tab-content active">
+                <div class="card">
+                    <div class="card-title">
+                        <span>Daftar Schedule Load, Spesifikasi Kabel & Voltage Drop </span>
+                        <div class="no-print" style="display:flex; gap:8px;">
+                            <button class="btn btn-sm btn-excel" onclick="exportScheduleExcel()">📥 Export Schedule (.xlsx)</button>
+                            <button class="btn btn-sm btn-danger" onclick="promptClearAllLoads()">🗑️ Hapus Semua Data</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tag / Nama Beban</th>
+                                    <th>Starter</th>
+                                    <th>Daya (W)</th>
+                                    <th>R (W)</th>
+                                    <th>S (W)</th>
+                                    <th>T (W)</th>
+                                    <th>Arus (A)</th>
+                                    <th>Proteksi Cabang</th>
+                                    <th>Inti & Rekomendasi Kabel</th>
+                                    <th>Panjang & Drop V (%)</th>
+                                    <th class="no-print">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loadTableBody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                            <tfoot>
+                                <tr style="background-color: #f8fafc; font-weight: bold;">
+                                    <td colspan="3" style="text-align: right;">TOTAL CONNECTED LOAD:</td>
+                                    <td id="footTotalWatt">0 W</td>
+                                    <td id="footPhaseR">0 W</td>
+                                    <td id="footPhaseS">0 W</td>
+                                    <td id="footPhaseT">0 W</td>
+                                    <td id="footTotalAmp">0 A</td>
+                                    <td colspan="4">Unbalance Factor: <span id="footUnbalance">0%</span></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-wiring" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <span>Single Line Wiring Diagram Schematics (A3 Standard)</span>
+                        <small style="font-size: 11px; color: var(--text-muted);">Skematik berdasarkan standar industri electrical engineering</small>
+                    </div>
+                    <div class="diagram-container">
+                        <div class="diagram-header">
+                            <div>DIAGRAM: SINGLE LINE SCHEMATIC <span id="diagPanelText">-</span></div>
+                            <div>INCOMER: <span id="diagIncomerText">-</span></div>
+                            <div>SYSTEM: 380V 3PHASE 50HZ</div>
+                        </div>
+                        <div class="sld-box" id="singleLineDiagramVisual">
+                            <!-- Visual SLD ASCII / Graphical representation generated live -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signature-card">
+                <div style="font-size:13px; font-weight:700; color:var(--primary-dark); border-bottom:1px solid var(--border-color); padding-bottom:6px; margin-bottom:10px;">
+                    ✍️ OTORISASI & DOKUMEN PERSETUJUAN KALKULASI
+                </div>
+                <div class="signature-grid">
+                    <div class="signature-box">
+                        <div class="signature-role">DISUSUN OLEH</div>
+                        <div class="signature-space">[ Tanda Tangan ]</div>
+                        <div>
+                            <div class="signature-name" id="dispPrepBy">Dadan Hamdalah Kahfi</div>
+                            <div class="signature-title">Electrical Designer / Drafter</div>
+                            <div class="signature-date" id="dispPrepDate">Tgl: -</div>
+                        </div>
+                    </div>
+
+                    <div class="signature-box">
+                        <div class="signature-role">DIPERIKSA OLEH</div>
+                        <div class="signature-space">[ Tanda Tangan ]</div>
+                        <div>
+                            <div class="signature-name" id="dispCheckBy">Budi Santoso, S.T.</div>
+                            <div class="signature-title">Manager Engineering</div>
+                            <div class="signature-date">Tgl: ........................</div>
+                        </div>
+                    </div>
+
+                    <div class="signature-box">
+                        <div class="signature-role">DISETUJUI OLEH</div>
+                        <div class="signature-space">[ Tanda Tangan ]</div>
+                        <div>
+                            <div class="signature-name" id="dispAppBy">Ir. Ahmad Hidayat</div>
+                            <div class="signature-title">Project Manager</div>
+                            <div class="signature-date">Tgl: ........................</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="print-only print-copyright">
+                © Copyright 2026 Engine Design System. All Rights Reserved.
+            </div>
+        </div>
+
+        <!-- 2. FORM INPUT DATA BEBAN (KANAN) -->
+        <div class="grid-col-right no-print">
+            <div class="card">
+                <div class="card-title">
+                    <span id="formTitle">2. Input Data Beban Baru</span>
+                    <button class="btn btn-sm btn-outline" style="color:var(--text-muted); border-color:var(--border-color);" onclick="resetForm()">Reset</button>
+                </div>
+                <form id="loadForm" onsubmit="saveLoad(event)">
+                    <input type="hidden" id="editIndex" value="-1">
+                    <div class="form-group">
+                        <label>Nama Beban / Tag Peralatan</label>
+                        <input type="text" id="loadTag" class="form-control" placeholder="Contoh: BEBAN 1" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Kategori Beban</label>
+                            <select id="loadCat" class="form-control" onchange="autoFillCatDefaults()">
+                                <option value="HVAC">HVAC / AHU / Fan</option>
+                                <option value="MOTOR">Motor / Pump</option>
+                                <option value="HEATER">Electric Heater</option>
+                                <option value="LIGHTING">Penerangan / Lampu</option>
+                                <option value="RECEPTACLE">Stop Kontak / Utility</option>
+                                <option value="DAMPER">Damper / Valve</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Starter Type</label>
+                            <select id="starterType" class="form-control">
+                                <option value="DIRECT">Direct Feed</option>
+                                <option value="DOL">DOL + TOR</option>
+                                <option value="SD">Star-Delta + TOR</option>
+                                <option value="VFD">Inverter / VFD</option>
+                                <option value="SCR">SCR Controller</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Kapasitas Daya</label>
+                            <input type="number" id="loadVal" class="form-control" placeholder="Nilai" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Satuan Unit</label>
+                            <select id="loadUnit" class="form-control">
+                                <option value="W">Watt (W)</option>
+                                <option value="kW">KiloWatt (kW)</option>
+                                <option value="HP">Horse Power (HP)</option>
+                                <option value="VA">Volt Ampere (VA)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Jumlah (Qty)</label>
+                            <input type="number" id="loadQty" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Demand Factor (%)</label>
+                            <input type="number" id="demandFactor" class="form-control" value="100" min="10" max="100">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Konfigurasi Fasa</label>
+                            <select id="phaseConfig" class="form-control" onchange="onPhaseConfigChange()">
+                                <option value="3P">3-Phase (R-S-T)</option>
+                                <option value="R">1-Phase (Fasa R)</option>
+                                <option value="S">1-Phase (Fasa S)</option>
+                                <option value="T">1-Phase (Fasa T)</option>
+                                <option value="AUTO">Auto Balance 1P</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Breaker Cabang</label>
+                            <select id="breakerType" class="form-control">
+                                <option value="MCB 3P">MCB 3-Pole</option>
+                                <option value="MCCB 3P">MCCB 3-Pole</option>
+                                <option value="MCB 1P">MCB 1-Pole</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cable Length & Cable Type for Branch Load -->
+                    <div class="form-row" style="background-color: #eff6ff; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #bfdbfe;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="color:var(--accent);">Panjang Kabel (m)</label>
+                            <input type="number" id="cableLength" class="form-control" placeholder="0" min="1" step="1" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="color:var(--accent);">Jenis Kabel</label>
+                            <select id="cableTypeSelect" class="form-control">
+                                <option value="NYY">NYY (Cu/PVC/PVC)</option>
+                                <option value="NYM">NYM (Cu/PVC/Indoor)</option>
+                                <option value="NYA">NYA (Kabel Tunggal)</option>
+                                <option value="NYFGBY">NYFGBY (Armored)</option>
+                                <option value="FRC">FRC (Tahan Api)</option>
+                                <option value="XLPE">XLPE / N2XY</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 8px;">
+                            <label style="color:var(--accent); font-weight:700;">📌 Jumlah Inti Kabel (Core)</label>
+                            <select id="cableCoreSelect" class="form-control" style="border: 2px solid var(--accent); background-color: #f0fdf4; font-weight: 600;">
+                                <option value="AUTO">⚙️ Auto Standard (1P: 3 Core P,N,G / 3P: 4 Core R,S,T,N)</option>
+                                <option value="3C">3 Core (Phase, Netral & Ground)</option>
+                                <option value="4C">4 Core (R, S, T, Netral)</option>
+                                <option value="5C">5 Core (R, S, T, Netral & Ground)</option>
+                                <option value="2C">2 Core (Phase & Netral)</option>
+                                <option value="1C">1 Core / Single Core (Paralel)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 10px;">
+                            <label class="checkbox-label" style="color:var(--accent);">
+                                <input type="checkbox" id="cableConduitOption" checked>
+                                🔌 Menggunakan Pipa Conduit
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label" style="color:var(--accent); margin-bottom: 8px;">
+                            <input type="checkbox" id="groundType" checked>
+                            ⚡ Kabel Grounding Terpisah (+ NYA)
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;" id="saveBtn">
+                        ➕ Tambah Ke Daftar Beban
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="no-print">
+        <p>© Copyright 2026 Engine Design System. All Rights Reserved.</p>
+    </footer>
+</div>
+
+<!-- Modal Confirmation -->
+<div class="modal-overlay" id="customModal">
+    <div class="modal-card">
+        <div class="modal-title" id="modalTitle">Konfirmasi</div>
+        <div class="modal-body" id="modalBody">Apakah Anda yakin?</div>
+        <div class="modal-actions">
+            <button class="btn btn-sm btn-outline" style="color:var(--text-dark); border-color:var(--border-color);" onclick="closeModal()">Batal</button>
+            <button class="btn btn-sm btn-danger" id="modalConfirmBtn" onclick="confirmModalAction()">Ya, Lanjutkan</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    let loads = [];
+    let calculatedSummary = {};
+    let pendingModalCallback = null;
+
+    const COPPER_RESISTIVITY = 0.0178;
+
+    // Tabel KHA Ampacity Kabel Tembaga Standard PUIL
+    const cableAmpacityTable = [
+        { sqmm: 2.5, maxAmp: 26, grounding: 2.5, conduit: "20 mm" },
+        { sqmm: 4, maxAmp: 34, grounding: 4, conduit: "25 mm" },
+        { sqmm: 6, maxAmp: 44, grounding: 6, conduit: "25 mm" },
+        { sqmm: 10, maxAmp: 61, grounding: 10, conduit: "25 mm" },
+        { sqmm: 16, maxAmp: 82, grounding: 10, conduit: "25 mm" },
+        { sqmm: 25, maxAmp: 108, grounding: 16, conduit: "32 mm" },
+        { sqmm: 35, maxAmp: 135, grounding: 16, conduit: "32 mm" },
+        { sqmm: 50, maxAmp: 168, grounding: 25, conduit: "50 mm" },
+        { sqmm: 70, maxAmp: 207, grounding: 35, conduit: "50 mm" },
+        { sqmm: 95, maxAmp: 250, grounding: 50, conduit: "50 mm" },
+        { sqmm: 120, maxAmp: 292, grounding: 70, conduit: "63 mm" },
+        { sqmm: 150, maxAmp: 335, grounding: 70, conduit: "63 mm" },
+        { sqmm: 185, maxAmp: 382, grounding: 95, conduit: "63 mm" },
+        { sqmm: 240, maxAmp: 453, grounding: 120, conduit: "75 mm" },
+        { sqmm: 300, maxAmp: 523, grounding: 150, conduit: "90 mm" }
+    ];
+
+    const standardBreakers = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 320, 400, 500, 630, 800];
+
+    // Standar Pasar Rasio CT Metering
+    const standardCTRatings = [50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1600, 2000];
+
+    // 1. FUNGSI MENYESUAIKAN UKURAN BUSBAR BERDASARKAN BEBAN ARUS (STANDAR PUIL)
+    function getRecommendedBusbar(currentAmp) {
+        if (currentAmp <= 125) return "Cu 20 x 3 mm (KHA ~ 180A)";
+        if (currentAmp <= 200) return "Cu 20 x 5 mm (KHA ~ 250A)";
+        if (currentAmp <= 300) return "Cu 30 x 5 mm (KHA ~ 380A)";
+        if (currentAmp <= 450) return "Cu 40 x 5 mm (KHA ~ 520A)";
+        if (currentAmp <= 600) return "Cu 50 x 5 mm (KHA ~ 700A)";
+        if (currentAmp <= 800) return "Cu 60 x 10 mm (KHA ~ 950A)";
+        return "Cu 80 x 10 mm (KHA ~ 1250A)";
+    }
+
+    // 2. FUNGSI MENYESUAIKAN UKURAN CT BERDASARKAN ARUS BEBAN UTAMA
+    function getRecommendedCT(currentAmp) {
+        let match = standardCTRatings.find(r => r >= currentAmp);
+        if (!match) match = standardCTRatings[standardCTRatings.length - 1];
+        return `CT ${match}/5A`;
+    }
+
+    function onPhaseConfigChange() {
+        const p = document.getElementById('phaseConfig').value;
+        const breakerSelect = document.getElementById('breakerType');
+        if (p === '3P') {
+            breakerSelect.value = 'MCB 3P';
+        } else {
+            breakerSelect.value = 'MCB 1P';
+        }
+    }
+
+    function toggleCustomPanelSize() {
+        const select = document.getElementById('panelSizeSelect');
+        const customContainer = document.getElementById('customPanelSizeContainer');
+        if (select.value === 'CUSTOM') {
+            customContainer.style.display = 'block';
+        } else {
+            customContainer.style.display = 'none';
+        }
+        calculateAll();
+    }
+
+    function getSelectedPanelDimensions(mainBreakerRating) {
+        const selectVal = document.getElementById('panelSizeSelect').value;
+        if (selectVal === 'CUSTOM') {
+            return document.getElementById('customPanelSize').value || "800 x 1200 x 400 mm";
+        } else if (selectVal !== 'AUTO') {
+            return selectVal;
+        }
+
+        if (mainBreakerRating <= 63 && loads.length <= 6) {
+            return "600 x 800 x 250 mm";
+        } else if (mainBreakerRating <= 160 && loads.length <= 12) {
+            return "800 x 1000 x 300 mm";
+        } else if (mainBreakerRating <= 400) {
+            return "800 x 1200 x 400 mm";
+        } else {
+            return "800 x 1800 x 600 mm";
+        }
+    }
+
+    function showToast(message) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+
+    function openModal(title, bodyText, callback) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalBody').innerText = bodyText;
+        pendingModalCallback = callback;
+        document.getElementById('customModal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('customModal').classList.remove('show');
+        pendingModalCallback = null;
+    }
+
+    function confirmModalAction() {
+        if (typeof pendingModalCallback === 'function') {
+            pendingModalCallback();
+        }
+        closeModal();
+    }
+
+    function switchTab(tabId, evt) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        const targetTab = document.getElementById(tabId);
+        if (targetTab) targetTab.classList.add('active');
+        
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.add('active');
+        }
+    }
+
+    function autoFillCatDefaults() {
+        const cat = document.getElementById('loadCat').value;
+        const starterSelect = document.getElementById('starterType');
+        const breakerSelect = document.getElementById('breakerType');
+        
+        if (cat === 'HVAC' || cat === 'MOTOR') {
+            starterSelect.value = 'DOL';
+            breakerSelect.value = 'MCB 3P';
+        } else if (cat === 'HEATER') {
+            starterSelect.value = 'SCR';
+            breakerSelect.value = 'MCCB 3P';
+        } else if (cat === 'LIGHTING' || cat === 'RECEPTACLE' || cat === 'DAMPER') {
+            starterSelect.value = 'DIRECT';
+            breakerSelect.value = 'MCB 1P';
+        }
+    }
+
+    function getRecommendedBreaker(ampNeeded, forceMCCB = false) {
+        let selectedRating = standardBreakers.find(b => b >= ampNeeded);
+        if (!selectedRating) selectedRating = standardBreakers[standardBreakers.length - 1];
+        
+        let type = "MCB 3P";
+        if (forceMCCB || selectedRating > 63) {
+            type = "MCCB 3P";
+        }
+        return { rating: selectedRating, type: type };
+    }
+
+    // 3 & 4. MENENTUKAN KABEL DENGAN SESUAI INTI CORE 1-PHASE (3-CORE) & 3-PHASE (4-CORE ATAU 5-CORE)
+    function getRecommendedCable(ampNeeded, lengthMeters, cableType = "NYY", is3Phase = true, customCore = "AUTO", groundOption = "SEPARATE", conduitOption = "YES") {
+        let matchIndex = cableAmpacityTable.findIndex(c => c.maxAmp >= ampNeeded);
+        if (matchIndex === -1) matchIndex = cableAmpacityTable.length - 1;
+
+        let match = cableAmpacityTable[matchIndex];
+
+        if (match.sqmm <= 1.5) {
+            match = cableAmpacityTable.find(c => c.sqmm === 2.5) || match;
+        }
+
+        let sysVolt = is3Phase ? 380 : 220;
+
+        let vDropVolt = 0;
+        if (is3Phase) {
+            vDropVolt = (Math.sqrt(3) * ampNeeded * lengthMeters * (COPPER_RESISTIVITY / match.sqmm));
+        } else {
+            vDropVolt = (2 * ampNeeded * lengthMeters * (COPPER_RESISTIVITY / match.sqmm));
+        }
+
+        let vDropPct = (vDropVolt / sysVolt) * 100;
+
+        let upscaled = false;
+        while (vDropPct > 5.0 && matchIndex < cableAmpacityTable.length - 1) {
+            matchIndex++;
+            match = cableAmpacityTable[matchIndex];
+            if (is3Phase) {
+                vDropVolt = (Math.sqrt(3) * ampNeeded * lengthMeters * (COPPER_RESISTIVITY / match.sqmm));
+            } else {
+                vDropVolt = (2 * ampNeeded * lengthMeters * (COPPER_RESISTIVITY / match.sqmm));
+            }
+            vDropPct = (vDropVolt / sysVolt) * 100;
+            upscaled = true;
+        }
+
+        if (match.sqmm <= 1.5) {
+            match = cableAmpacityTable.find(c => c.sqmm === 2.5) || match;
+        }
+
+        let groundText = (groundOption === "SEPARATE") ? ` + NYA ${match.grounding} mm²` : "";
+
+        let coreText = "";
+        
+        // Aturan Penentuan Core Kabel Terstruktur:
+        if (customCore === "AUTO") {
+            if (is3Phase) {
+                // Default 3 Phase: 4 Core (R, S, T, Netral)
+                coreText = `${cableType} 4x${match.sqmm} mm² (R, S, T, Netral)${groundText}`;
+            } else {
+                // Default 1 Phase: 3 Core (Phase, Netral, Ground)
+                coreText = `${cableType} 3x${match.sqmm} mm² (Phase, Netral, Ground)`;
+            }
+        } else if (customCore === "3C") {
+            // 3-Core spesifik: Phase, Netral & Ground
+            coreText = `${cableType} 3x${match.sqmm} mm² (Phase, Netral, Ground)`;
+        } else if (customCore === "4C") {
+            // 4-Core spesifik: R, S, T, Netral
+            coreText = `${cableType} 4x${match.sqmm} mm² (R, S, T, Netral)${groundText}`;
+        } else if (customCore === "5C") {
+            // 5-Core spesifik: R, S, T, Netral, Ground
+            coreText = `${cableType} 5x${match.sqmm} mm² (R, S, T, Netral, Ground)`;
+        } else if (customCore === "1C") {
+            let runCount = is3Phase ? 4 : 3;
+            let descRun = is3Phase ? "R,S,T,N" : "Phase, Netral, Ground";
+            coreText = `${runCount}x(${cableType} 1x${match.sqmm} mm² [${descRun}])${groundText}`;
+        } else {
+            let numCore = customCore.replace('C', '');
+            coreText = `${cableType} ${numCore}x${match.sqmm} mm²${groundText}`;
+        }
+
+        let conduitText = "";
+        if (conduitOption === "YES") {
+            conduitText = `IN PVC HI DIA. ${match.conduit}`;
+        } else {
+            conduitText = "TANPA CONDUIT";
+        }
+
+        return {
+            cableText: coreText,
+            conduitText: conduitText,
+            sqmm: match.sqmm,
+            groundSqmm: match.grounding,
+            conduit: match.conduit,
+            vDropPct: vDropPct,
+            vDropVolt: vDropVolt,
+            upscaled: upscaled,
+            lengthMeters: lengthMeters,
+            cableType: cableType,
+            customCore: customCore,
+            groundOption: groundOption,
+            conduitOption: conduitOption
+        };
+    }
+
+    function saveLoad(e) {
+        e.preventDefault();
+        
+        const index = parseInt(document.getElementById('editIndex').value);
+        const tag = document.getElementById('loadTag').value;
+        const category = document.getElementById('loadCat').value;
+        const starter = document.getElementById('starterType').value;
+        const rawVal = parseFloat(document.getElementById('loadVal').value) || 0;
+        const unit = document.getElementById('loadUnit').value;
+        const qty = parseInt(document.getElementById('loadQty').value) || 1;
+        const df = parseFloat(document.getElementById('demandFactor').value) || 100;
+        let phase = document.getElementById('phaseConfig').value;
+        const breakerType = document.getElementById('breakerType').value;
+        const cableLength = parseFloat(document.getElementById('cableLength').value) || 0;
+        const cableTypeSelect = document.getElementById('cableTypeSelect').value;
+        const cableCoreSelect = document.getElementById('cableCoreSelect').value || "AUTO";
+        
+        const cableConduitOption = document.getElementById('cableConduitOption').checked ? "YES" : "NO";
+        const groundType = document.getElementById('groundType').checked ? "SEPARATE" : "INTEGRATED";
+
+        let wattPerUnit = rawVal;
+        if (unit === 'kW') wattPerUnit = rawVal * 1000;
+        else if (unit === 'HP') wattPerUnit = rawVal * 746;
+        else if (unit === 'VA') wattPerUnit = rawVal * 0.85;
+
+        const totalWatt = wattPerUnit * qty;
+
+        if (phase === 'AUTO') {
+            const currentPhaseTotals = getPhaseTotals();
+            if (currentPhaseTotals.R <= currentPhaseTotals.S && currentPhaseTotals.R <= currentPhaseTotals.T) {
+                phase = 'R';
+            } else if (currentPhaseTotals.S <= currentPhaseTotals.R && currentPhaseTotals.S <= currentPhaseTotals.T) {
+                phase = 'S';
+            } else {
+                phase = 'T';
+            }
+        }
+
+        const item = {
+            tag, category, starter, rawVal, unit, wattPerUnit, qty, totalWatt, df, phase, breakerType, cableLength, cableTypeSelect, cableCoreSelect, cableConduitOption, groundType
+        };
+
+        if (index === -1) {
+            loads.push(item);
+            showToast(`Beban "${tag}" berhasil ditambahkan.`);
+        } else {
+            loads[index] = item;
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('saveBtn').innerHTML = "➕ Tambah Ke Daftar Beban";
+            document.getElementById('formTitle').innerText = "2. Input Data Beban Baru";
+            showToast(`Beban "${tag}" berhasil diperbarui.`);
+        }
+
+        resetForm();
+        calculateAll();
+    }
+
+    function resetForm() {
+        document.getElementById('loadForm').reset();
+        document.getElementById('editIndex').value = "-1";
+        document.getElementById('saveBtn').innerHTML = "➕ Tambah Ke Daftar Beban";
+        document.getElementById('formTitle').innerText = "2. Input Data Beban Baru";
+        document.getElementById('cableLength').value = "";
+        document.getElementById('cableTypeSelect').value = "NYY";
+        document.getElementById('cableCoreSelect').value = "AUTO";
+        document.getElementById('cableConduitOption').checked = true;
+        document.getElementById('groundType').checked = true;
+    }
+
+    function editLoad(idx) {
+        const l = loads[idx];
+        document.getElementById('editIndex').value = idx;
+        document.getElementById('loadTag').value = l.tag;
+        document.getElementById('loadCat').value = l.category;
+        document.getElementById('starterType').value = l.starter;
+        document.getElementById('loadVal').value = l.rawVal;
+        document.getElementById('loadUnit').value = l.unit;
+        document.getElementById('loadQty').value = l.qty;
+        document.getElementById('demandFactor').value = l.df;
+        document.getElementById('phaseConfig').value = l.phase;
+        document.getElementById('breakerType').value = l.breakerType;
+        document.getElementById('cableLength').value = l.cableLength || "";
+        document.getElementById('cableTypeSelect').value = l.cableTypeSelect || "NYY";
+        document.getElementById('cableCoreSelect').value = l.cableCoreSelect || "AUTO";
+        
+        document.getElementById('cableConduitOption').checked = (l.cableConduitOption === "YES");
+        document.getElementById('groundType').checked = (l.groundType === "SEPARATE");
+
+        document.getElementById('saveBtn').innerHTML = "✏️ Update Data Beban";
+        document.getElementById('formTitle').innerText = `✏️ Edit Item #${idx+1}: ${l.tag}`;
+    }
+
+    function deleteLoad(idx) {
+        const tag = loads[idx].tag;
+        openModal("Hapus Beban", `Apakah Anda yakin ingin menghapus beban "${tag}"?`, () => {
+            loads.splice(idx, 1);
+            calculateAll();
+            showToast(`Beban "${tag}" telah dihapus.`);
+        });
+    }
+
+    function promptClearAllLoads() {
+        openModal("Hapus Semua Beban", "Apakah Anda yakin ingin menghapus seluruh data beban dalam tabel?", () => {
+            loads = [];
+            calculateAll();
+            showToast("Seluruh data beban telah dikosongkan.");
+        });
+    }
+
+    function getPhaseTotals() {
+        let R = 0, S = 0, T = 0;
+        loads.forEach(l => {
+            const demandWatt = l.totalWatt * (l.df / 100);
+            if (l.phase === '3P') {
+                R += demandWatt / 3;
+                S += demandWatt / 3;
+                T += demandWatt / 3;
+            } else if (l.phase === 'R') R += demandWatt;
+            else if (l.phase === 'S') S += demandWatt;
+            else if (l.phase === 'T') T += demandWatt;
+        });
+        return { R, S, T };
+    }
+
+    function calculateAll() {
+        const projNameVal = document.getElementById('projName').value || "-";
+        const panelNameVal = document.getElementById('panelName').value || "-";
+        const projSourceVal = document.getElementById('projSource').value || "-";
+
+        const prepByVal = document.getElementById('prepBy').value || "Dadan Hamdalah Kahfi";
+        const prepDateVal = document.getElementById('prepDate').value || new Date().toISOString().split('T')[0];
+        const checkByVal = document.getElementById('checkBy').value || "Manager Engineering";
+        const appByVal = document.getElementById('appBy').value || "Project Manager";
+
+        const dateObj = new Date(prepDateVal);
+        const formattedPrepDate = isNaN(dateObj.getTime()) 
+            ? prepDateVal 
+            : dateObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        document.getElementById('dispPrepBy').innerText = prepByVal;
+        document.getElementById('dispPrepDate').innerText = `Tgl: ${formattedPrepDate}`;
+        document.getElementById('dispCheckBy').innerText = checkByVal;
+        document.getElementById('dispAppBy').innerText = appByVal;
+
+        const sysPhase = document.getElementById('sysPhase').value;
+        const cosPhi = parseFloat(document.getElementById('sysCosPhi').value) || 0.85;
+        const safetyFactor = parseFloat(document.getElementById('safetyFactor').value) || 1.25;
+        const spareMargin = parseFloat(document.getElementById('spareMargin').value) || 20;
+        const mainCableLen = parseFloat(document.getElementById('mainCableLen').value) || 0;
+        const mainCableType = document.getElementById('mainCableType').value || "NYY";
+        const mainCableCore = document.getElementById('mainCableCore').value || "AUTO";
+        
+        const mainConduitOption = document.getElementById('mainConduitOption').checked ? "YES" : "NO";
+        const mainGroundType = document.getElementById('mainGroundType').checked ? "SEPARATE" : "INTEGRATED";
+        
+        const panelTypeVal = document.getElementById('panelTypeSelect').value;
+
+        document.getElementById('printProjName').innerText = projNameVal;
+        document.getElementById('printPanelTitle').innerText = panelNameVal;
+        document.getElementById('printProjSource').innerText = projSourceVal;
+        document.getElementById('diagPanelText').innerText = panelNameVal;
+
+        let grandTotalWatt = 0;
+        let grandDemandWatt = 0;
+        let phaseR = 0, phaseS = 0, phaseT = 0;
+
+        const tableBody = document.getElementById('loadTableBody');
+        tableBody.innerHTML = "";
+
+        loads.forEach((l, i) => {
+            grandTotalWatt += l.totalWatt;
+            const demandWatt = l.totalWatt * (l.df / 100);
+            grandDemandWatt += demandWatt;
+
+            let wR = 0, wS = 0, wT = 0;
+            let currentAmp = 0;
+
+            if (l.phase === '3P') {
+                wR = wS = wT = Math.round(l.totalWatt / 3);
+                phaseR += demandWatt / 3;
+                phaseS += demandWatt / 3;
+                phaseT += demandWatt / 3;
+                currentAmp = l.totalWatt / (Math.sqrt(3) * 380 * cosPhi);
+            } else {
+                if (l.phase === 'R') { wR = l.totalWatt; phaseR += demandWatt; }
+                else if (l.phase === 'S') { wS = l.totalWatt; phaseS += demandWatt; }
+                else if (l.phase === 'T') { wT = l.totalWatt; phaseT += demandWatt; }
+                currentAmp = l.totalWatt / (220 * cosPhi);
+            }
+
+            const breakerAmpNeeded = currentAmp * safetyFactor;
+            const branchBreaker = getRecommendedBreaker(breakerAmpNeeded, l.totalWatt > 10000);
+            const branchCable = getRecommendedCable(
+                branchBreaker.rating, 
+                l.cableLength || 0, 
+                l.cableTypeSelect || "NYY", 
+                l.phase === '3P',
+                l.cableCoreSelect || "AUTO",
+                l.groundType || "SEPARATE",
+                l.cableConduitOption || "YES"
+            );
+
+            l.calculatedAmp = currentAmp;
+            l.branchBreaker = branchBreaker;
+            l.branchCable = branchCable;
+            l.wR = wR;
+            l.wS = wS;
+            l.wT = wT;
+
+            let vDropBadgeClass = "badge-vdrop-ok";
+            if (branchCable.vDropPct > 3.0 && branchCable.vDropPct <= 5.0) {
+                vDropBadgeClass = "badge-vdrop-warn";
+            } else if (branchCable.vDropPct > 5.0 || branchCable.upscaled) {
+                vDropBadgeClass = "badge-vdrop-danger";
+            }
+
+            // Tampilan Badge Core Kabel
+            let coreBadgeText = l.cableCoreSelect === 'AUTO' 
+                ? (l.phase === '3P' ? '4 Core (R,S,T,N)' : '3 Core (Phase,N,G)') 
+                : `${l.cableCoreSelect} (${l.phase === '3P' ? '3P' : '1P'})`;
+
+            let gndBadgeText = (l.groundType === "INTEGRATED" || l.phase !== '3P') ? '✅ Integrated Core' : '⚡ + NYA Ground';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${i + 1}</td>
+                <td><strong>${l.tag}</strong><br><small style="color:var(--text-muted);">${l.category}</small></td>
+                <td><span class="badge badge-phase-3p">${l.starter}</span></td>
+                <td><strong>${l.totalWatt.toLocaleString('id-ID')} W</strong><br><small>${l.qty}x ${l.rawVal} ${l.unit}</small></td>
+                <td>${wR ? wR.toLocaleString('id-ID') : '-'}</td>
+                <td>${wS ? wS.toLocaleString('id-ID') : '-'}</td>
+                <td>${wT ? wT.toLocaleString('id-ID') : '-'}</td>
+                <td><strong>${currentAmp.toFixed(1)} A</strong></td>
+                <td>${l.breakerType} ${branchBreaker.rating}A</td>
+                <td>
+                    <div style="font-size:11px;">
+                        <span class="badge badge-phase-s" style="margin-bottom:2px;">📌 ${coreBadgeText}</span> 
+                        <span class="badge badge-phase-t" style="margin-bottom:2px;">${gndBadgeText}</span><br>
+                        <strong>${branchCable.cableText}</strong><br>
+                        <span style="color:${branchCable.conduitOption === 'NO' ? 'var(--text-muted)' : 'var(--accent)'}; font-weight:${branchCable.conduitOption === 'NO' ? 'normal' : '600'};">${branchCable.conduitText}</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size:11px;">
+                        <strong>L = ${l.cableLength || 0} m</strong><br>
+                        <span class="badge ${vDropBadgeClass}">\Delta V: ${branchCable.vDropPct.toFixed(2)}% ${branchCable.upscaled ? '(Naik Size)' : ''}</span>
+                    </div>
+                </td>
+                <td class="no-print">
+                    <button class="btn btn-sm btn-outline" style="color:var(--accent); border-color:var(--accent);" onclick="editLoad(${i})">✏️</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteLoad(${i})">🗑️</button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        let mainIncomerCurrent = 0;
+        if (sysPhase === '3P') {
+            mainIncomerCurrent = (grandDemandWatt) / (Math.sqrt(3) * 380 * cosPhi);
+        } else {
+            mainIncomerCurrent = grandDemandWatt / (220 * cosPhi);
+        }
+
+        const spareFactorMultiplier = (1 + spareMargin / 100);
+        const designCurrent = mainIncomerCurrent * safetyFactor * spareFactorMultiplier;
+        const mainBreaker = getRecommendedBreaker(designCurrent, true);
+        const mainCable = getRecommendedCable(mainBreaker.rating, mainCableLen, mainCableType, sysPhase === '3P', mainCableCore, mainGroundType, mainConduitOption);
+        const panelDimensionText = getSelectedPanelDimensions(mainBreaker.rating);
+
+        // Rekomendasi Busbar & CT Otomatis
+        const recommendedBusbar = getRecommendedBusbar(mainBreaker.rating);
+        const recommendedCT = getRecommendedCT(mainBreaker.rating);
+
+        const avgPhase = (phaseR + phaseS + phaseT) / 3;
+        const maxDev = Math.max(Math.abs(phaseR - avgPhase), Math.abs(phaseS - avgPhase), Math.abs(phaseT - avgPhase));
+        const unbalancePct = avgPhase > 0 ? ((maxDev / avgPhase) * 100).toFixed(1) : "0";
+
+        calculatedSummary = {
+            grandTotalWatt,
+            grandDemandWatt,
+            cosPhi,
+            sysPhase,
+            safetyFactor,
+            spareMargin,
+            mainIncomerCurrent,
+            designCurrent,
+            mainBreaker,
+            mainCable,
+            mainCableLen,
+            mainCableType,
+            mainCableCore,
+            mainConduitOption,
+            mainGroundType,
+            panelTypeVal,
+            panelDimensionText,
+            recommendedBusbar,
+            recommendedCT,
+            phaseR,
+            phaseS,
+            phaseT,
+            unbalancePct,
+            prepByVal,
+            formattedPrepDate,
+            checkByVal,
+            appByVal
+        };
+
+        document.getElementById('dispTotalWatt').innerText = `${(grandTotalWatt / 1000).toFixed(2)} kW`;
+        document.getElementById('dispTotalkVA').innerText = `${(grandTotalWatt / (1000 * cosPhi)).toFixed(2)} kVA (Connected)`;
+        document.getElementById('dispDemandWatt').innerText = `${(grandDemandWatt / 1000).toFixed(2)} kW`;
+        document.getElementById('dispDemandAmp').innerText = `${mainIncomerCurrent.toFixed(1)} A (Nominal Load)`;
+        document.getElementById('dispMainBreaker').innerText = `${mainBreaker.type} ${mainBreaker.rating}A`;
+        document.getElementById('dispBreakerSpec').innerText = `Rating ${mainBreaker.rating}A (Design: ${designCurrent.toFixed(1)}A)`;
+        document.getElementById('dispMainCable').innerText = mainCable.cableText;
+        document.getElementById('dispKHA').innerText = `L=${mainCableLen}m | \Delta V: ${mainCable.vDropPct.toFixed(2)}% (${mainCable.conduitText})`;
+
+        document.getElementById('footTotalWatt').innerText = `${grandTotalWatt.toLocaleString('id-ID')} W`;
+        document.getElementById('footPhaseR').innerText = `${Math.round(phaseR).toLocaleString('id-ID')} W`;
+        document.getElementById('footPhaseS').innerText = `${Math.round(phaseS).toLocaleString('id-ID')} W`;
+        document.getElementById('footPhaseT').innerText = `${Math.round(phaseT).toLocaleString('id-ID')} W`;
+        document.getElementById('footTotalAmp').innerText = `${mainIncomerCurrent.toFixed(1)} A`;
+        document.getElementById('footUnbalance').innerText = `${unbalancePct}% ${parseFloat(unbalancePct) > 15 ? '⚠️ (Tinggi)' : '✅ (Ok)'}`;
+
+        document.getElementById('printDate').innerText = formattedPrepDate;
+        document.getElementById('diagIncomerText').innerText = `${mainCable.cableText} (${mainCableLen}m) [${mainCable.conduitText}] FROM ${projSourceVal}`;
+
+        renderSingleLineDiagram(mainBreaker, mainCable);
+    }
+
+    function renderSingleLineDiagram(mainBreaker, mainCable) {
+        const source = document.getElementById('projSource').value || "-";
+        const panelName = document.getElementById('panelName').value || "-";
+        const prepBy = calculatedSummary.prepByVal || "-";
+        const container = document.getElementById('singleLineDiagramVisual');
+
+        let sldText = "";
+        sldText += `┌────────────────────────────────────────────────────────────────────────────────────────┐\n`;
+        sldText += `│ PANEL: ${panelName.padEnd(79)} │\n`;
+        sldText += `│ TYPE & DIMENSION: ${(calculatedSummary.panelTypeVal + " | " + calculatedSummary.panelDimensionText).padEnd(68)} │\n`;
+        sldText += `│ POWER SOURCE: ${source.padEnd(72)} │\n`;
+        sldText += `│ INCOMER FEEDER: ${(mainCable.cableText + " (L=" + mainCable.lengthMeters + "m) [" + mainCable.conduitText + "]").padEnd(70)} │\n`;
+        sldText += `└───────────────────────────┬────────────────────────────────────────────────────────────┘\n`;
+        sldText += `                            │\n`;
+        sldText += `                         ┌──┴──┐\n`;
+        sldText += `                         │     │ [MAIN INCOMER BREAKER]\n`;
+        sldText += `                         │  /  │ ${mainBreaker.type} 3P ${mainBreaker.rating}A (Isc: 36kA)\n`;
+        sldText += `                         │     │ ${calculatedSummary.recommendedCT} + Metering (V, A, Hz, kW)\n`;
+        sldText += `                         └──┬──┘\n`;
+        sldText += `                            │\n`;
+        sldText += `════════════════════════════╧═════════════════════════════════════════════════════════════════ BUSBAR MAIN R-S-T-N-PE (${calculatedSummary.recommendedBusbar})\n`;
+
+        if (loads.length === 0) {
+            sldText += `\n    (Belum ada data beban. Silakan tambahkan beban baru pada formulir di samping.)\n`;
+        } else {
+            loads.forEach((l, idx) => {
+                const currentAmp = l.calculatedAmp || 0;
+                const brk = l.branchBreaker || getRecommendedBreaker(currentAmp * 1.25);
+                const cbl = l.branchCable || getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES");
+
+                sldText += `    │\n`;
+                sldText += `    ├─── [CB #${(idx+1).toString().padStart(2, '0')}] ───> ${l.breakerType} ${brk.rating}A  (${l.starter})\n`;
+                sldText += `    │                    ├──> Cable  : ${cbl.cableText} (Panjang: ${l.cableLength || 0}m)\n`;
+                sldText += `    │                    ├──> Drop V : ${cbl.vDropPct.toFixed(2)}% | Conduit: ${cbl.conduitText}\n`;
+                sldText += `    │                    └──> Load   : ${l.tag} (${l.totalWatt}W / ${currentAmp.toFixed(1)}A) [Phase ${l.phase}]\n`;
+            });
+        }
+
+        sldText += `    │\n`;
+        sldText += `    └─── [SPARE CB] ─────> MCB 3P 16A (CADANGAN / FUTURE EXTENSION)\n`;
+
+        sldText += `\nDESIGNED BY: ${prepBy.toUpperCase()} | DATE: ${calculatedSummary.formattedPrepDate}\n`;
+
+        container.innerText = sldText;
+    }
+
+    function exportScheduleExcel() {
+        if (typeof XLSX === 'undefined') {
+            showToast("Library SheetJS Excel belum dimuat.");
+            return;
+        }
+
+        const projName = document.getElementById('projName').value || "Panel Electrical";
+        const panelName = document.getElementById('panelName').value || "Panel";
+        const wb = XLSX.utils.book_new();
+
+        const rows = [];
+        rows.push(["MASTER LOAD CALCULATION SCHEDULE"]);
+        rows.push(["Proyek:", projName]);
+        rows.push(["Panel:", panelName]);
+        rows.push(["Tipe Panel:", calculatedSummary.panelTypeVal]);
+        rows.push(["Ukuran Panel:", calculatedSummary.panelDimensionText]);
+        rows.push(["Spesifikasi Busbar Utama:", calculatedSummary.recommendedBusbar]);
+        rows.push(["Spesifikasi CT Transformer:", calculatedSummary.recommendedCT]);
+        rows.push(["Disusun Oleh:", calculatedSummary.prepByVal]);
+        rows.push(["Tanggal Penyusunan:", calculatedSummary.formattedPrepDate]);
+        rows.push(["Diperiksa Oleh (Manager Eng.):", calculatedSummary.checkByVal]);
+        rows.push(["Disetujui Oleh (Project Manager):", calculatedSummary.appByVal]);
+        rows.push([]);
+
+        rows.push([
+            "No", "Tag / Nama Beban", "Kategori", "Starter", "Kapasitas Unit", "Qty",
+            "Total Daya (Watt)", "Demand Factor (%)", "R (Watt)", "S (Watt)", "T (Watt)",
+            "Arus Nominal (A)", "Proteksi Breaker", "Tipe Kabel", "Inti Kabel (Core)",
+            "Rekomendasi Spesifikasi Kabel", "Panjang Kabel (m)", "Drop Voltage (%)", "Conduit"
+        ]);
+
+        loads.forEach((l, idx) => {
+            rows.push([
+                idx + 1,
+                l.tag,
+                l.category,
+                l.starter,
+                `${l.rawVal} ${l.unit}`,
+                l.qty,
+                l.totalWatt,
+                l.df,
+                l.wR || 0,
+                l.wS || 0,
+                l.wT || 0,
+                parseFloat((l.calculatedAmp || 0).toFixed(2)),
+                `${l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
+                l.cableTypeSelect || "NYY",
+                l.cableCoreSelect || "AUTO",
+                l.branchCable ? l.branchCable.cableText : '',
+                l.cableLength || 0,
+                l.branchCable ? parseFloat(l.branchCable.vDropPct.toFixed(2)) : 0,
+                l.branchCable ? l.branchCable.conduitText : ''
+            ]);
+        });
+
+        rows.push([]);
+        rows.push([
+            "TOTAL", "CONNECTED LOAD", "", "", "", "",
+            calculatedSummary.grandTotalWatt || 0, "",
+            Math.round(calculatedSummary.phaseR || 0),
+            Math.round(calculatedSummary.phaseS || 0),
+            Math.round(calculatedSummary.phaseT || 0),
+            parseFloat((calculatedSummary.mainIncomerCurrent || 0).toFixed(2)),
+            `Main: ${calculatedSummary.mainBreaker ? calculatedSummary.mainBreaker.type + " " + calculatedSummary.mainBreaker.rating + "A" : ""}`,
+            calculatedSummary.mainCableType || "NYY",
+            calculatedSummary.mainCableCore || "AUTO",
+            calculatedSummary.mainCable ? calculatedSummary.mainCable.cableText : "",
+            calculatedSummary.mainCableLen || 0,
+            calculatedSummary.mainCable ? parseFloat(calculatedSummary.mainCable.vDropPct.toFixed(2)) : 0,
+            calculatedSummary.mainCable ? calculatedSummary.mainCable.conduitText : ""
+        ]);
+
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "Load Schedule");
+
+        const fileName = `Schedule_Load_${panelName.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    }
+
+    function exportFullWorkbook() {
+        if (typeof XLSX === 'undefined') {
+            showToast("Library SheetJS Excel belum dimuat.");
+            return;
+        }
+
+        const projName = document.getElementById('projName').value || "Panel Electrical";
+        const panelName = document.getElementById('panelName').value || "Panel";
+        const source = document.getElementById('projSource').value || "LVMDB";
+        const wb = XLSX.utils.book_new();
+
+        const summaryData = [
+            ["MASTER LOAD CALCULATION & WIRING DIAGRAM PANEL ENGINE"],
+            ["DOKUMEN SPESIFIKASI & RINGKASAN UTAMA PANEL"],
+            [""],
+            ["PARAMETER PROYEK & DOKUMEN"],
+            ["Nama Proyek", projName],
+            ["Nama Panel", panelName],
+            ["Disusun Oleh (Penyusun)", calculatedSummary.prepByVal || "-"],
+            ["Tanggal Penyusunan", calculatedSummary.formattedPrepDate || "-"],
+            ["Diperiksa Oleh (Manager Eng.)", calculatedSummary.checkByVal || "-"],
+            ["Disetujui Oleh (Project Manager)", calculatedSummary.appByVal || "-"],
+            ["Tipe Panel (Enclosure)", calculatedSummary.panelTypeVal || "-"],
+            ["Dimensi Ukuran Panel", calculatedSummary.panelDimensionText || "-"],
+            ["Rekomendasi Busbar Utama", calculatedSummary.recommendedBusbar || "-"],
+            ["Rekomendasi CT Transformer Metering", calculatedSummary.recommendedCT || "-"],
+            ["Sumber Incomer Feeder", source],
+            ["Sistem Voltase", document.getElementById('sysPhase').value === '3P' ? '3-Phase 380V / 220V' : '1-Phase 220V'],
+            ["Cos Phi / Power Factor", parseFloat(document.getElementById('sysCosPhi').value) || 0.85],
+            ["Safety Factor Breaker", parseFloat(document.getElementById('safetyFactor').value) || 1.25],
+            ["Spare Margin (%)", parseFloat(document.getElementById('spareMargin').value) || 20],
+            ["Panjang Feeder Main Incomer", `${calculatedSummary.mainCableLen || 0} Meter`],
+            ["Tipe Kabel Feeder Main", calculatedSummary.mainCableType || "NYY"],
+            ["Konfigurasi Inti Main Incomer", calculatedSummary.mainCableCore || "AUTO"],
+            ["Penggunaan Conduit Feeder Utama", calculatedSummary.mainConduitOption === 'YES' ? 'Menggunakan Conduit' : 'TANPA CONDUIT'],
+            ["Kabel Grounding Terpisah Feeder Utama", calculatedSummary.mainGroundType === 'SEPARATE' ? 'Menggunakan NYA Terpisah' : 'Terintegrasi'],
+            [""],
+            ["HASIL KALKULASI TEKNIS PANEL"],
+            ["Total Connected Load (kW)", `${((calculatedSummary.grandTotalWatt || 0) / 1000).toFixed(2)} kW`],
+            ["Total Apparent Power (kVA)", `${((calculatedSummary.grandTotalWatt || 0) / (1000 * (calculatedSummary.cosPhi || 0.85))).toFixed(2)} kVA`],
+            ["Total Max Demand Load (kW)", `${((calculatedSummary.grandDemandWatt || 0) / 1000).toFixed(2)} kW`],
+            ["Arus Nominal Incomer (A)", `${(calculatedSummary.mainIncomerCurrent || 0).toFixed(2)} A`],
+            ["Arus Desain Design Current (A)", `${(calculatedSummary.designCurrent || 0).toFixed(2)} A`],
+            ["Rekomendasi Main Breaker", `${calculatedSummary.mainBreaker ? calculatedSummary.mainBreaker.type + " " + calculatedSummary.mainBreaker.rating + "A" : "-"}`],
+            ["Rekomendasi Cable Feeder Main", calculatedSummary.mainCable ? calculatedSummary.mainCable.cableText : "-"],
+            ["Pipa Conduit Feeder Main", calculatedSummary.mainCable ? calculatedSummary.mainCable.conduitText : "-"],
+            ["Drop Tegangan Feeder Main", calculatedSummary.mainCable ? `${calculatedSummary.mainCable.vDropPct.toFixed(2)}%` : "-"],
+            ["Fasa R Load", `${Math.round(calculatedSummary.phaseR || 0)} Watt`],
+            ["Fasa S Load", `${Math.round(calculatedSummary.phaseS || 0)} Watt`],
+            ["Fasa T Load", `${Math.round(calculatedSummary.phaseT || 0)} Watt`],
+            ["Unbalance Factor Fasa", `${calculatedSummary.unbalancePct || 0}%`],
+            [""],
+            [`© 2026 ${calculatedSummary.prepByVal || 'Engine Design System'}. All Rights Reserved.`]
+        ];
+        const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan Panel");
+
+        const scheduleRows = [
+            ["SCHEDULE MASTER LOAD PANEL"],
+            ["Proyek:", projName],
+            ["Nama Panel:", panelName],
+            ["Disusun Oleh:", calculatedSummary.prepByVal],
+            ["Tanggal:", calculatedSummary.formattedPrepDate],
+            ["Diperiksa Oleh:", calculatedSummary.checkByVal],
+            ["Disetujui Oleh:", calculatedSummary.appByVal],
+            [""],
+            [
+                "No", "Tag / Nama Beban", "Kategori", "Starter", "Kapasitas Unit", "Qty", 
+                "Total Daya (Watt)", "Demand Factor (%)", "R (Watt)", "S (Watt)", "T (Watt)", 
+                "Arus Nominal (A)", "Proteksi Breaker Cabang", "Tipe Kabel", "Inti Kabel", "Rekomendasi Kabel", "Panjang (m)", "Drop V (%)", "Conduit"
+            ]
+        ];
+
+        loads.forEach((l, idx) => {
+            scheduleRows.push([
+                idx + 1,
+                l.tag,
+                l.category,
+                l.starter,
+                `${l.rawVal} ${l.unit}`,
+                l.qty,
+                l.totalWatt,
+                l.df,
+                l.wR || 0,
+                l.wS || 0,
+                l.wT || 0,
+                parseFloat((l.calculatedAmp || 0).toFixed(2)),
+                `${l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
+                l.cableTypeSelect || "NYY",
+                l.cableCoreSelect || "AUTO",
+                l.branchCable ? l.branchCable.cableText : '',
+                l.cableLength || 0,
+                l.branchCable ? parseFloat(l.branchCable.vDropPct.toFixed(2)) : 0,
+                l.branchCable ? l.branchCable.conduitText : ''
+            ]);
+        });
+
+        scheduleRows.push([]);
+        scheduleRows.push([
+            "TOTAL", "CONNECTED LOAD", "", "", "", "",
+            calculatedSummary.grandTotalWatt || 0, "",
+            Math.round(calculatedSummary.phaseR || 0),
+            Math.round(calculatedSummary.phaseS || 0),
+            Math.round(calculatedSummary.phaseT || 0),
+            parseFloat((calculatedSummary.mainIncomerCurrent || 0).toFixed(2)),
+            `Main: ${calculatedSummary.mainBreaker ? calculatedSummary.mainBreaker.type + " " + calculatedSummary.mainBreaker.rating + "A" : ""}`,
+            calculatedSummary.mainCableType || "NYY",
+            calculatedSummary.mainCableCore || "AUTO",
+            calculatedSummary.mainCable ? calculatedSummary.mainCable.cableText : "",
+            calculatedSummary.mainCableLen || 0,
+            calculatedSummary.mainCable ? parseFloat(calculatedSummary.mainCable.vDropPct.toFixed(2)) : 0,
+            calculatedSummary.mainCable ? calculatedSummary.mainCable.conduitText : ""
+        ]);
+        const wsSchedule = XLSX.utils.aoa_to_sheet(scheduleRows);
+        XLSX.utils.book_append_sheet(wb, wsSchedule, "Schedule Load");
+
+        const fileName = `Master_Panel_${panelName.replace(/[^a-zA-Z0-9]/g, '_')}_Full.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    }
+
+    window.onload = function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('prepDate').value = today;
+        calculateAll();
+    };
+</script>
+
+</body>
+</html>
