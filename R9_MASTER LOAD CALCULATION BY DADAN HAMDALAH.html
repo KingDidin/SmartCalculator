@@ -1,54 +1,60 @@
-<!DOCTYPE html>
+html_content = r'''<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Load Calculation & Wiring Diagram Panel Engine</title>
+    <title>Master Load Calculation & Wiring Diagram Panel Engine (Dark & Landscape Edition)</title>
     <!-- SheetJS Excel Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <style>
         :root {
-            --primary: #1e3a8a;
-            --primary-dark: #1e293b;
-            --accent: #2563eb;
-            --success: #16a34a;
+            --bg-dark: #0b0f19;
+            --bg-card: #151c2c;
+            --bg-card-hover: #1e283d;
+            --bg-input: #0b0f19;
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
             --excel-green: #107c41;
-            --warning: #ca8a04;
-            --danger: #dc2626;
-            --bg-slate: #f8fafc;
-            --card-bg: #ffffff;
-            --border-color: #cbd5e1;
-            --text-dark: #0f172a;
-            --text-muted: #64748b;
+            --border-color: #2a364f;
+            --border-highlight: #3b82f6;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
         }
 
         body {
-            background-color: var(--bg-slate);
-            color: var(--text-dark);
-            line-height: 1.5;
-            padding: 20px;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.4;
+            padding: 16px;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1720px;
             margin: 0 auto;
         }
 
         header {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            color: white;
-            padding: 24px 32px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 18px 24px;
             border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -57,14 +63,27 @@
         }
 
         header h1 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header h1 span.badge-header {
+            font-size: 11px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
         }
 
         header p {
-            color: #93c5fd;
-            font-size: 14px;
+            color: var(--text-muted);
+            font-size: 13px;
             margin-top: 4px;
         }
 
@@ -75,60 +94,58 @@
         }
 
         .btn {
-            padding: 10px 16px;
+            padding: 9px 16px;
             border-radius: 8px;
             font-weight: 600;
             font-size: 13px;
             cursor: pointer;
-            border: none;
+            border: 1px solid transparent;
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        .btn-primary { background-color: var(--accent); color: white; }
-        .btn-primary:hover { background-color: #1d4ed8; }
-        .btn-success { background-color: var(--success); color: white; }
-        .btn-success:hover { background-color: #15803d; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-success { background-color: var(--accent-green); color: white; }
+        .btn-success:hover { background-color: #059669; }
         .btn-excel { background-color: var(--excel-green); color: white; }
         .btn-excel:hover { background-color: #0b5a2f; }
-        .btn-outline { background: transparent; border: 1px solid white; color: white; }
-        .btn-outline:hover { background: rgba(255,255,255,0.1); }
-        .btn-danger { background-color: var(--danger); color: white; }
-        .btn-danger:hover { background-color: #b91c1c; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-outline { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: var(--text-muted); }
+        .btn-danger { background-color: var(--accent-red); color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
 
-        .grid-layout {
+        .top-inputs-grid {
             display: grid;
-            grid-template-columns: 340px 1fr 320px;
-            gap: 20px;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 16px;
+            margin-bottom: 16px;
         }
 
-        @media (max-width: 1200px) {
-            .grid-layout { grid-template-columns: 1fr; }
-            .grid-col-center { order: 2; }
-            .grid-col-left { order: 1; }
-            .grid-col-right { order: 3; }
+        @media (max-width: 1100px) {
+            .top-inputs-grid { grid-template-columns: 1fr; }
         }
 
         .card {
-            background: var(--card-bg);
+            background: var(--bg-card);
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            padding: 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 16px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            margin-bottom: 16px;
         }
 
         .card-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
-            color: var(--primary-dark);
-            margin-bottom: 16px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f1f5f9;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -137,26 +154,26 @@
         }
 
         .form-section-title {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            color: var(--accent);
+            color: var(--primary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-top: 14px;
-            margin-bottom: 8px;
-            padding-bottom: 4px;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            padding-bottom: 2px;
             border-bottom: 1px dashed var(--border-color);
         }
 
-        .form-group { margin-bottom: 14px; }
+        .form-group { margin-bottom: 10px; }
         .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-muted);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
         }
 
         .checkbox-label {
@@ -164,67 +181,99 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             text-transform: none;
             letter-spacing: normal;
             margin-bottom: 0;
             user-select: none;
+            color: var(--text-main);
         }
 
         .checkbox-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
-            accent-color: var(--accent);
+            accent-color: var(--primary);
         }
 
         .form-control {
             width: 100%;
-            padding: 10px 12px;
+            padding: 8px 10px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-            background-color: #fff;
+            font-size: 13px;
+            transition: all 0.2s;
+            background-color: var(--bg-input);
+            color: var(--text-main);
         }
 
         .form-control:focus {
             outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--border-highlight);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Preset Buttons bar for speedy entry */
+        .preset-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px dashed var(--border-color);
+            color: var(--accent-cyan);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--accent-cyan);
         }
 
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .metric-card {
-            background: #f8fafc;
-            border-left: 4px solid var(--accent);
-            padding: 16px;
+            background: var(--bg-card);
+            border-left: 4px solid var(--primary);
+            padding: 14px 16px;
             border-radius: 8px;
             border-top: 1px solid var(--border-color);
             border-right: 1px solid var(--border-color);
             border-bottom: 1px solid var(--border-color);
         }
 
-        .metric-card.success { border-left-color: var(--success); }
-        .metric-card.warning { border-left-color: var(--warning); }
-        .metric-card.danger { border-left-color: var(--danger); }
+        .metric-card.success { border-left-color: var(--accent-green); }
+        .metric-card.warning { border-left-color: var(--accent-yellow); }
+        .metric-card.danger { border-left-color: var(--accent-red); }
 
         .metric-label {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
         }
@@ -232,88 +281,90 @@
         .metric-value {
             font-size: 20px;
             font-weight: 700;
-            color: var(--text-dark);
+            color: var(--text-main);
             margin: 4px 0;
         }
 
         .metric-sub {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
         }
 
         .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background-color: #f1f5f9; font-weight: 700; color: var(--primary-dark); white-space: nowrap; }
-        tbody tr:hover { background-color: #f8fafc; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #101726; font-weight: 700; color: var(--accent-cyan); white-space: nowrap; }
+        tbody tr:hover { background-color: var(--bg-card-hover); }
 
         .badge {
-            padding: 4px 8px;
+            padding: 3px 6px;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             display: inline-block;
         }
 
-        .badge-phase-r { background: #fee2e2; color: #991b1b; }
-        .badge-phase-s { background: #fef3c7; color: #92400e; }
-        .badge-phase-t { background: #dbeafe; color: #1e40af; }
-        .badge-phase-3p { background: #f3e8ff; color: #6b21a8; }
+        .badge-phase-r { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .badge-phase-s { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-phase-t { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .badge-phase-3p { background: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.4); }
         
-        .badge-vdrop-ok { background: #dcfce7; color: #166534; }
-        .badge-vdrop-warn { background: #fef9c3; color: #854d0e; }
-        .badge-vdrop-danger { background: #fee2e2; color: #991b1b; }
+        .badge-vdrop-ok { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-vdrop-warn { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-vdrop-danger { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
 
         .diagram-container {
-            background-color: #0b132b;
-            color: #48cae4;
-            padding: 24px;
-            border-radius: 12px;
+            background-color: #050811;
+            color: #38bdf8;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
             overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
-            margin-top: 16px;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+            margin-top: 10px;
         }
 
         .diagram-header {
-            color: #fff;
-            border-bottom: 1px dashed #3a86ff;
+            color: #f1f5f9;
+            border-bottom: 1px dashed #38bdf8;
             padding-bottom: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .tabs {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             border-bottom: 2px solid var(--border-color);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .tab-btn {
-            padding: 10px 20px;
+            padding: 8px 16px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             background: none;
             border: none;
             cursor: pointer;
             color: var(--text-muted);
             border-bottom: 3px solid transparent;
             margin-bottom: -2px;
+            transition: all 0.2s;
         }
 
-        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
         .signature-card {
-            margin-top: 24px;
-            background: var(--card-bg);
+            margin-top: 16px;
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             break-inside: avoid;
             page-break-inside: avoid;
         }
@@ -321,56 +372,56 @@
         .signature-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 12px;
+            gap: 16px;
+            margin-top: 10px;
         }
 
         .signature-box {
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 16px;
+            padding: 12px;
             text-align: center;
-            background: #fafafa;
+            background: #0d1322;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 180px;
+            min-height: 160px;
             break-inside: avoid;
             page-break-inside: avoid;
         }
 
         .signature-role {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            color: var(--primary-dark);
+            color: var(--accent-cyan);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 6px;
+            padding-bottom: 4px;
         }
 
         .signature-space {
-            height: 65px;
+            height: 55px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-style: italic;
             color: var(--text-muted);
             font-size: 11px;
-            margin: 10px 0;
-            border: 1px dashed #cbd5e1;
+            margin: 8px 0;
+            border: 1px dashed var(--border-color);
             border-radius: 4px;
-            background: #ffffff;
+            background: rgba(0,0,0,0.2);
         }
 
-        .signature-name { font-size: 13px; font-weight: 700; color: var(--text-dark); text-decoration: underline; }
-        .signature-title { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-        .signature-date { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+        .signature-name { font-size: 12px; font-weight: 700; color: var(--text-main); text-decoration: underline; }
+        .signature-title { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+        .signature-date { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
 
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(0, 0, 0, 0.75);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -382,20 +433,21 @@
 
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
         .modal-card {
-            background: white;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 24px;
-            max-width: 450px;
+            padding: 20px;
+            max-width: 420px;
             width: 90%;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             transform: translateY(10px);
             transition: transform 0.2s ease;
         }
 
         .modal-overlay.show .modal-card { transform: translateY(0); }
-        .modal-title { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
-        .modal-body { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+        .modal-body { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
         .toast-container {
             position: fixed;
@@ -404,20 +456,21 @@
             z-index: 1100;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .toast {
-            background: var(--primary-dark);
-            color: white;
-            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--primary);
+            color: var(--text-main);
+            padding: 10px 16px;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             animation: slideIn 0.3s ease;
         }
 
@@ -426,41 +479,158 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        footer {
-            text-align: center;
-            padding: 20px;
-            margin-top: 30px;
-            color: var(--text-muted);
-            font-size: 13px;
-            border-top: 1px solid var(--border-color);
+        /* Print classes for isolated printing of active tabs */
+        body.print-schedule .no-print,
+        body.print-schedule #tab-wiring,
+        body.print-schedule .metrics-grid,
+        body.print-schedule header,
+        body.print-schedule .top-inputs-grid,
+        body.print-schedule .tabs,
+        body.print-schedule footer {
+            display: none !important;
+        }
+        body.print-schedule #tab-schedule {
+            display: block !important;
+        }
+        body.print-schedule .signature-card {
+            display: block !important;
+            margin-top: 20px !important;
+        }
+
+        body.print-wiring .no-print,
+        body.print-wiring #tab-schedule,
+        body.print-wiring .metrics-grid,
+        body.print-wiring header,
+        body.print-wiring .top-inputs-grid,
+        body.print-wiring .tabs,
+        body.print-wiring footer {
+            display: none !important;
+        }
+        body.print-wiring #tab-wiring {
+            display: block !important;
+        }
+        body.print-wiring .signature-card {
+            display: block !important;
+            margin-top: 20px !important;
         }
 
         @media print {
-            @page { size: A4 portrait; margin: 10mm; }
-            body { background: white !important; padding: 0 !important; margin: 0 !important; color: black !important; font-size: 10pt; }
-            .no-print, header, .grid-col-left, .grid-col-right, .tabs, footer.no-print, .metrics-grid { display: none !important; }
-            .grid-layout { display: block !important; }
-            .card { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 10px !important; page-break-inside: auto; }
-            .tab-content { display: block !important; }
-            .print-only { display: block !important; }
-            .signature-card { border: 1px solid #000 !important; margin-top: 15px !important; padding: 12px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-            .signature-grid { gap: 12px !important; }
-            .signature-box { border: 1px solid #000 !important; background: white !important; padding: 8px !important; min-height: 120px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-            .signature-space { height: 45px !important; border: none !important; }
-            .diagram-container { background-color: white !important; color: black !important; border: 2px solid black; padding: 12px; }
-            .diagram-container * { color: black !important; }
-            table { font-size: 9pt !important; }
-            th, td { padding: 5px 6px !important; }
-            tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 9pt !important;
+            }
+
+            .no-print, header, .top-inputs-grid, .tabs, footer.no-print, .preset-bar, .metrics-grid {
+                display: none !important;
+            }
+
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin-bottom: 8px !important;
+                background: transparent !important;
+            }
+
+            .tab-content {
+                display: block !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            table {
+                font-size: 8pt !important;
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+
+            th, td {
+                padding: 4px 6px !important;
+                border: 1px solid #94a3b8 !important;
+                color: black !important;
+            }
+
+            th {
+                background-color: #f1f5f9 !important;
+                color: black !important;
+            }
+
+            .badge {
+                border: 1px solid #64748b !important;
+                color: black !important;
+                background: #f1f5f9 !important;
+            }
+
+            .diagram-container {
+                background-color: white !important;
+                color: black !important;
+                border: 1px solid black !important;
+                padding: 8px !important;
+                box-shadow: none !important;
+            }
+
+            .diagram-container * {
+                color: black !important;
+            }
+
+            .diagram-header {
+                border-bottom: 1px dashed black !important;
+            }
+
+            .signature-card {
+                display: block !important;
+                background: white !important;
+                border: 1px solid #000 !important;
+                box-shadow: none !important;
+                margin-top: 15px !important;
+                padding: 10px !important;
+            }
+
+            .signature-box {
+                background: white !important;
+                border: 1px solid #000 !important;
+                color: black !important;
+            }
+
+            .signature-role {
+                color: black !important;
+                border-bottom: 1px solid #000 !important;
+            }
+
+            .signature-space {
+                border: 1px dashed #000 !important;
+                background: transparent !important;
+                color: #333 !important;
+            }
+
+            .signature-name {
+                color: black !important;
+            }
+
+            .signature-title, .signature-date {
+                color: #333 !important;
+            }
+
+            tr { page-break-inside: avoid !important; }
         }
 
         .print-only { display: none; }
-        .print-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; }
-        .print-header h2 { font-size: 14pt; text-transform: uppercase; margin-bottom: 2px; }
-        .print-header h3 { font-size: 11pt; text-transform: uppercase; color: #333; margin-bottom: 4px; }
-        .print-header p { font-size: 9pt; }
-        .print-copyright { margin-top: 15px; text-align: center; font-size: 9px; color: #555; page-break-inside: avoid; }
-        .sld-box { font-family: 'Courier New', monospace; white-space: pre; line-height: 1.2; font-size: 11px; }
+        .print-header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 6px; }
+        .print-header h2 { font-size: 13pt; text-transform: uppercase; margin-bottom: 2px; color: black; }
+        .print-header h3 { font-size: 10pt; text-transform: uppercase; color: #333; margin-bottom: 2px; }
+        .print-header p { font-size: 8pt; color: #555; }
+        .print-copyright { margin-top: 10px; text-align: center; font-size: 8px; color: #555; page-break-inside: avoid; }
+        .sld-box { font-family: 'Consolas', 'Courier New', monospace; white-space: pre; line-height: 1.25; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -468,428 +638,409 @@
 <div class="container">
     <header class="no-print">
         <div>
-            <h1>Master Load Calculation & Wiring Diagram Engine</h1>
+            <h1>⚡ Master Load Calculation & Wiring Diagram Engine <span class="badge-header">Dark / Landscape</span></h1>
             <p>Standar Perhitungan Beban Listrik, Penyeimbangan Fasa, Drop Tegangan & Rekomendasi Kabel / Protection (PUIL 2020)</p>
         </div>
         <div class="header-actions">
             <button class="btn btn-excel" onclick="exportFullWorkbook()">📊 Download Excel (.xlsx)</button>
-            <button class="btn btn-success" onclick="window.print()">🖨️ Cetak Diagram & Rekap</button>
+            <button class="btn btn-success" onclick="window.print()">🖨️ Cetak PDF (Lanskap Standard)</button>
         </div>
     </header>
 
-    <div class="grid-layout">
-        <!-- 1. PARAMETER SYSTEM & PROYEK (KIRI) -->
-        <div class="grid-col-left no-print">
-            <div class="card">
-                <div class="card-title">1. Parameter System & Proyek</div>
-                
-                <div class="form-section-title">Informasi Proyek & Panel</div>
+    <div class="top-inputs-grid no-print">
+        <!-- 1. PARAMETER SISTEM & PROYEK -->
+        <div class="card">
+            <div class="card-title">
+                <span>1. Parameter System & Proyek</span>
+                <small style="font-size:11px; color:var(--text-muted);">Spesifikasi Incomer & Panel</small>
+            </div>
+            
+            <div class="form-row-3">
                 <div class="form-group">
                     <label>Nama Proyek</label>
-                    <input type="text" id="projName" class="form-control" placeholder="Contoh: PT. ABC - PROJECT 1" oninput="calculateAll()">
+                    <input type="text" id="projName" class="form-control" placeholder="PT. ABC - PROJECT 1" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
                     <label>Nama Panel</label>
-                    <input type="text" id="panelName" class="form-control" placeholder="Contoh: PANEL UTAMA PRODUKSI" oninput="calculateAll()">
+                    <input type="text" id="panelName" class="form-control" placeholder="PANEL UTAMA PRODUKSI" oninput="calculateAll()">
                 </div>
+                <div class="form-group">
+                    <label>Sumber Incomer</label>
+                    <input type="text" id="projSource" class="form-control" placeholder="LVMDB REAKTOR" oninput="calculateAll()">
+                </div>
+            </div>
 
-                <div class="form-section-title">Otorisasi & Penyusun Dokumen</div>
+            <div class="form-row-3">
                 <div class="form-group">
-                    <label>Disusun Oleh (Penyusun)</label>
-                    <input type="text" id="prepBy" class="form-control" placeholder="Nama Penyusun" value="Dadan Hamdalah Kahfi" oninput="calculateAll()">
+                    <label>Disusun Oleh</label>
+                    <input type="text" id="prepBy" class="form-control" value="Dadan Hamdalah Kahfi" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
-                    <label>Tanggal Penyusunan</label>
+                    <label>Tgl Penyusunan</label>
                     <input type="date" id="prepDate" class="form-control" onchange="calculateAll()">
                 </div>
                 <div class="form-group">
-                    <label>Diperiksa Oleh (Manager Eng.)</label>
-                    <input type="text" id="checkBy" class="form-control" placeholder="Nama Manager Engineering" value="Budi Santoso, S.T." oninput="calculateAll()">
+                    <label>Diperiksa Oleh</label>
+                    <input type="text" id="checkBy" class="form-control" value="Budi Santoso, S.T." oninput="calculateAll()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Disetujui Oleh</label>
+                    <input type="text" id="appBy" class="form-control" value="Ir. Ahmad Hidayat" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
-                    <label>Disetujui Oleh (Project Manager)</label>
-                    <input type="text" id="appBy" class="form-control" placeholder="Nama Project Manager" value="Ir. Ahmad Hidayat" oninput="calculateAll()">
+                    <label>Tipe Panel Enclosure</label>
+                    <select id="panelTypeSelect" class="form-control" onchange="calculateAll()">
+                        <option value="Wall Mounting (Indoor IP54)">Wall Mounting (Indoor IP54)</option>
+                        <option value="Free Standing (Indoor IP54)">Free Standing (Indoor IP54)</option>
+                        <option value="Outdoor Weatherproof (IP65)">Outdoor Weatherproof (IP65)</option>
+                        <option value="Modular Floor Standing">Modular Floor Standing</option>
+                    </select>
                 </div>
+                <div class="form-group">
+                    <label>Dimensi Ukuran Panel</label>
+                    <select id="panelSizeSelect" class="form-control" onchange="toggleCustomPanelSize()">
+                        <option value="AUTO">⚙️ Auto Sesuai Beban</option>
+                        <option value="400 x 600 x 200 mm">400 x 600 x 200 mm</option>
+                        <option value="600 x 800 x 250 mm">600 x 800 x 250 mm</option>
+                        <option value="800 x 1000 x 300 mm">800 x 1000 x 300 mm</option>
+                        <option value="800 x 1200 x 400 mm">800 x 1200 x 400 mm</option>
+                        <option value="800 x 1800 x 600 mm">800 x 1800 x 600 mm</option>
+                        <option value="CUSTOM">✏️ Custom Size</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" id="customPanelSizeContainer" style="display: none;">
+                <label>Input Ukuran Custom (P x T x L mm)</label>
+                <input type="text" id="customPanelSize" class="form-control" placeholder="Contoh: 900 x 1500 x 500 mm" oninput="calculateAll()">
+            </div>
+
+            <div class="form-row" style="background-color: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Sistem Voltase</label>
+                    <select id="sysPhase" class="form-control" onchange="calculateAll()">
+                        <option value="3P">3-Phase 380V / 220V</option>
+                        <option value="1P">1-Phase 220V</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Cos Phi</label>
+                    <input type="number" id="sysCosPhi" class="form-control" value="0.85" step="0.01" onchange="calculateAll()">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Safety Factor</label>
+                    <input type="number" id="safetyFactor" class="form-control" value="1.25" step="0.05" onchange="calculateAll()">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Panjang Feeder (m)</label>
+                    <input type="number" id="mainCableLen" class="form-control" placeholder="0" min="1" step="1" onchange="calculateAll()">
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 8px;">
+                <div class="form-group">
+                    <label>Jenis Kabel Main</label>
+                    <select id="mainCableType" class="form-control" onchange="calculateAll()">
+                        <option value="NYY">NYY (Cu/PVC/PVC Outdoor)</option>
+                        <option value="NYFGBY">NYFGBY (Armored Tanaman)</option>
+                        <option value="FRC">FRC (Fire Resistant Cable)</option>
+                        <option value="N2XSY">N2XSY / XLPE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Jumlah Inti Main Incomer</label>
+                    <select id="mainCableCore" class="form-control" onchange="calculateAll()">
+                        <option value="AUTO">Auto Standard Core</option>
+                        <option value="4C">4 Core (R, S, T, Netral)</option>
+                        <option value="5C">5 Core (R, S, T, N, G)</option>
+                        <option value="1C">1 Core / Single Core</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 16px; margin-top: 4px;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="mainConduitOption" onchange="calculateAll()" checked> 🔌 Pipa Conduit Feeder
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="mainGroundType" onchange="calculateAll()" checked> ⚡ Kabel Grounding Terpisah
+                </label>
+            </div>
+        </div>
+
+        <!-- 2. FORM ENTRY DATA BEBAN RINGKAS DENGAN PRESET -->
+        <div class="card">
+            <div class="card-title">
+                <span id="formTitle">2. Input Data Beban Listrik</span>
+                <button class="btn btn-sm btn-outline" onclick="resetForm()">Reset Form</button>
+            </div>
+
+            <!-- Quick Preset Buttons -->
+            <div class="preset-bar">
+                <span style="font-size:11px; color:var(--text-muted); align-self:center;">⚡ Quick Preset:</span>
+                <button class="preset-btn" onclick="applyPreset('MOTOR', 7.5, 'kW', '3P', 'SD')">+ Motor 7.5kW (3P)</button>
+                <button class="preset-btn" onclick="applyPreset('LIGHTING', 2000, 'W', 'R', 'DIRECT')">+ Lampu 2kW (1P)</button>
+                <button class="preset-btn" onclick="applyPreset('HVAC', 15, 'kW', '3P', 'DOL')">+ HVAC 15kW (3P)</button>
+                <button class="preset-btn" onclick="applyPreset('HEATER', 10, 'kW', '3P', 'SCR')">+ Heater 10kW (3P)</button>
+            </div>
+
+            <form id="loadForm" onsubmit="saveLoad(event)">
+                <input type="hidden" id="editIndex" value="-1">
                 
-                <div class="form-section-title">Spesifikasi Enclosure & Feeder</div>
                 <div class="form-row">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Nama / Tag Beban Peralatan</label>
+                        <input type="text" id="loadTag" class="form-control" placeholder="Contoh: BEBAN POMPA 1" required>
+                    </div>
                     <div class="form-group">
-                        <label>Tipe Panel (Enclosure)</label>
-                        <select id="panelTypeSelect" class="form-control" onchange="calculateAll()">
-                            <option value="Wall Mounting (Indoor IP54)">Wall Mounting (Indoor IP54)</option>
-                            <option value="Free Standing (Indoor IP54)">Free Standing (Indoor IP54)</option>
-                            <option value="Outdoor Weatherproof (IP65)">Outdoor Weatherproof (IP65)</option>
-                            <option value="Modular Floor Standing">Modular Floor Standing</option>
-                            <option value="Desk / Console Panel">Desk / Console Panel</option>
+                        <label>Kategori Beban</label>
+                        <select id="loadCat" class="form-control" onchange="autoFillCatDefaults()">
+                            <option value="HVAC">HVAC / AHU / Fan</option>
+                            <option value="MOTOR">Motor / Pump</option>
+                            <option value="HEATER">Electric Heater</option>
+                            <option value="LIGHTING">Penerangan / Lampu</option>
+                            <option value="RECEPTACLE">Stop Kontak / Utility</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Ukuran Dimensi Panel</label>
-                        <select id="panelSizeSelect" class="form-control" onchange="toggleCustomPanelSize()">
-                            <option value="AUTO">⚙️ Auto Sesuai Beban</option>
-                            <option value="400 x 600 x 200 mm">400 x 600 x 200 mm</option>
-                            <option value="600 x 800 x 250 mm">600 x 800 x 250 mm</option>
-                            <option value="800 x 1000 x 300 mm">800 x 1000 x 300 mm</option>
-                            <option value="800 x 1200 x 400 mm">800 x 1200 x 400 mm</option>
-                            <option value="800 x 1800 x 600 mm">800 x 1800 x 600 mm</option>
-                            <option value="1000 x 2000 x 800 mm">1000 x 2000 x 800 mm</option>
-                            <option value="CUSTOM">✏️ Custom Size</option>
+                        <label>Starter Type</label>
+                        <select id="starterType" class="form-control">
+                            <option value="DIRECT">Direct Feed</option>
+                            <option value="DOL">DOL + TOR</option>
+                            <option value="SD">Star-Delta + TOR</option>
+                            <option value="VFD">Inverter / VFD</option>
+                            <option value="SCR">SCR Controller</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group" id="customPanelSizeContainer" style="display: none;">
-                    <label>Input Ukuran Custom (P x T x L mm)</label>
-                    <input type="text" id="customPanelSize" class="form-control" placeholder="Contoh: 900 x 1500 x 500 mm" oninput="calculateAll()">
-                </div>
-
-                <div class="form-group">
-                    <label>Sumber Incomer Dari</label>
-                    <input type="text" id="projSource" class="form-control" placeholder="Contoh: LVMDB REAKTOR" oninput="calculateAll()">
-                </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Sistem Voltase</label>
-                        <select id="sysPhase" class="form-control" onchange="calculateAll()">
-                            <option value="3P">3-Phase 380V / 220V</option>
-                            <option value="1P">1-Phase 220V</option>
+                        <label>Kapasitas Daya</label>
+                        <input type="number" id="loadVal" class="form-control" placeholder="Nilai" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Satuan</label>
+                        <select id="loadUnit" class="form-control">
+                            <option value="W">Watt (W)</option>
+                            <option value="kW">KiloWatt (kW)</option>
+                            <option value="HP">Horse Power (HP)</option>
+                            <option value="VA">Volt Ampere (VA)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Cos Phi (Power Factor)</label>
-                        <input type="number" id="sysCosPhi" class="form-control" value="0.85" step="0.01" onchange="calculateAll()">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Safety Factor Breaker</label>
-                        <input type="number" id="safetyFactor" class="form-control" value="1.25" step="0.05" onchange="calculateAll()">
+                        <label>Qty</label>
+                        <input type="number" id="loadQty" class="form-control" value="1" min="1" required>
                     </div>
                     <div class="form-group">
-                        <label>Spare Margin (%)</label>
-                        <input type="number" id="spareMargin" class="form-control" value="20" onchange="calculateAll()">
+                        <label>Demand (%)</label>
+                        <input type="number" id="demandFactor" class="form-control" value="100" min="10" max="100">
                     </div>
                 </div>
 
-                <div class="form-row" style="background-color: #f1f5f9; padding: 10px; border-radius: 6px; margin-top: 6px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fasa</label>
+                        <select id="phaseConfig" class="form-control" onchange="onPhaseConfigChange()">
+                            <option value="3P">3-Phase (R-S-T)</option>
+                            <option value="R">1-Phase (Fasa R)</option>
+                            <option value="S">1-Phase (Fasa S)</option>
+                            <option value="T">1-Phase (Fasa T)</option>
+                            <option value="AUTO">Auto Balance 1P</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Breaker Cabang</label>
+                        <select id="breakerType" class="form-control">
+                            <option value="MCB 3P">MCB 3-Pole</option>
+                            <option value="MCCB 3P">MCCB 3-Pole</option>
+                            <option value="MCB 1P">MCB 1-Pole</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Panjang (m)</label>
+                        <input type="number" id="cableLength" class="form-control" placeholder="0" min="1" step="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jenis Kabel</label>
+                        <select id="cableTypeSelect" class="form-control">
+                            <option value="NYY">NYY (Cu/PVC/PVC)</option>
+                            <option value="NYM">NYM (Cu/PVC Indoor)</option>
+                            <option value="NYA">NYA (Kabel Tunggal)</option>
+                            <option value="NYFGBY">NYFGBY (Armored)</option>
+                            <option value="FRC">FRC (Tahan Api)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" style="align-items: center; margin-top: 4px;">
                     <div class="form-group" style="margin-bottom:0;">
-                        <label style="color:var(--primary-dark);">Panjang Feeder Incomer (m)</label>
-                        <input type="number" id="mainCableLen" class="form-control" placeholder="0" min="1" step="1" onchange="calculateAll()">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label style="color:var(--primary-dark);">Tipe Kabel Incomer Utama</label>
-                        <select id="mainCableType" class="form-control" onchange="calculateAll()">
-                            <option value="NYY">NYY (Cu/PVC/PVC Outdoor/Tray)</option>
-                            <option value="NYFGBY">NYFGBY (Armored Bawah Tanah)</option>
-                            <option value="FRC">FRC (Fire Resistant Cable)</option>
-                            <option value="N2XSY">N2XSY / XLPE (Insulasi XLPE)</option>
-                            <option value="NYM">NYM (Indoor Conduit/Tray)</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 8px;">
-                        <label style="color:var(--primary-dark);">Jumlah Inti Kabel Main Incomer</label>
-                        <select id="mainCableCore" class="form-control" onchange="calculateAll()">
-                            <option value="AUTO">Auto (3P: 4 Core R,S,T,N / 1P: 3 Core P,N,G)</option>
+                        <label>Inti Kabel (Core)</label>
+                        <select id="cableCoreSelect" class="form-control">
+                            <option value="AUTO">⚙️ Auto Standard (3P: 4-Core / 1P: 3-Core)</option>
                             <option value="3C">3 Core (Phase, Netral, Ground)</option>
                             <option value="4C">4 Core (R, S, T, Netral)</option>
                             <option value="5C">5 Core (R, S, T, Netral, Ground)</option>
-                            <option value="1C">1 Core / Single Core (Paralel)</option>
                         </select>
                     </div>
-                    <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 10px;">
-                        <label class="checkbox-label" style="color:var(--primary-dark);">
-                            <input type="checkbox" id="mainConduitOption" onchange="calculateAll()" checked>
-                            🔌 Menggunakan Pipa Conduit
+                    <div style="display: flex; gap: 12px; grid-column: span 2; margin-top: 14px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="cableConduitOption" checked> Conduit Pipa
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="groundType" checked> + Grounding NYA
                         </label>
                     </div>
-                    <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 6px;">
-                        <label class="checkbox-label" style="color:var(--primary-dark);">
-                            <input type="checkbox" id="mainGroundType" onchange="calculateAll()" checked>
-                            ⚡ Kabel Grounding Terpisah (+ NYA)
-                        </label>
-                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 12px;" id="saveBtn">
+                    ➕ Simpan & Tambahkan Ke Daftar Beban
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Total Connected Load</div>
+            <div class="metric-value" id="dispTotalWatt">0.00 kW</div>
+            <div class="metric-sub" id="dispTotalkVA">0.00 kVA</div>
+        </div>
+        <div class="metric-card success">
+            <div class="metric-label">Total Max Demand Load</div>
+            <div class="metric-value" id="dispDemandWatt">0.00 kW</div>
+            <div class="metric-sub" id="dispDemandAmp">0.0 A (Nominal Load)</div>
+        </div>
+        <div class="metric-card warning">
+            <div class="metric-label">Rekomendasi Main Breaker</div>
+            <div class="metric-value" id="dispMainBreaker">MCCB 6A</div>
+            <div class="metric-sub" id="dispBreakerSpec">Safety Factor 125%</div>
+        </div>
+        <div class="metric-card danger">
+            <div class="metric-label">Rekomendasi Feeder Main</div>
+            <div class="metric-value" id="dispMainCable">-</div>
+            <div class="metric-sub" id="dispKHA">KHA & Drop Tegangan</div>
+        </div>
+    </div>
+
+    <!-- Printable Landscape Header -->
+    <div class="print-only print-header">
+        <h2>REKAPITULASI DOKUMEN MASTER LOAD & WIRING DIAGRAM PANEL</h2>
+        <h3 id="printPanelTitle">-</h3>
+        <p id="printSub">Proyek: <span id="printProjName">-</span> | Sumber Incomer: <span id="printProjSource">-</span></p>
+        <p style="font-size: 8pt; margin-top: 2px;">Tanggal Perhitungan: <span id="printDate"></span></p>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="tabs no-print">
+        <button class="tab-btn active" onclick="switchTab('tab-schedule', event)">📊 Schedule Master Load Table</button>
+        <button class="tab-btn" onclick="switchTab('tab-wiring', event)">⚡ Wiring Diagram Schematics (SLD)</button>
+    </div>
+
+    <div id="tab-schedule" class="tab-content active">
+        <div class="card">
+            <div class="card-title">
+                <span>Daftar Schedule Load, Spesifikasi Kabel & Voltage Drop</span>
+                <div class="no-print" style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-success" onclick="printScheduleOnly()">🖨️ Cetak Schedule PDF</button>
+                    <button class="btn btn-sm btn-excel" onclick="exportScheduleExcel()">📥 Export Schedule (.xlsx)</button>
+                    <button class="btn btn-sm btn-danger" onclick="promptClearAllLoads()">🗑️ Hapus Semua Data</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Tag / Nama Beban</th>
+                            <th>Starter</th>
+                            <th>Daya (W)</th>
+                            <th>R (W)</th>
+                            <th>S (W)</th>
+                            <th>T (W)</th>
+                            <th>Arus (A)</th>
+                            <th>Proteksi Cabang</th>
+                            <th>Inti & Rekomendasi Kabel</th>
+                            <th>Panjang & Drop V (%)</th>
+                            <th class="no-print">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loadTableBody">
+                        <!-- Dynamic load rows -->
+                    </tbody>
+                    <tfoot>
+                        <tr style="background-color: #101726; font-weight: bold; color: var(--accent-cyan);">
+                            <td colspan="3" style="text-align: right;">TOTAL CONNECTED LOAD:</td>
+                            <td id="footTotalWatt">0 W</td>
+                            <td id="footPhaseR">0 W</td>
+                            <td id="footPhaseS">0 W</td>
+                            <td id="footPhaseT">0 W</td>
+                            <td id="footTotalAmp">0 A</td>
+                            <td colspan="4">Unbalance Factor: <span id="footUnbalance">0%</span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-wiring" class="tab-content">
+        <div class="card">
+            <div class="card-title">
+                <span>Single Line Wiring Diagram Schematics (A3 / Landscape Standard)</span>
+                <div class="no-print" style="display:flex; gap:8px;">
+                    <button class="btn btn-sm btn-success" onclick="printWiringOnly()">🖨️ Cetak Wiring Diagram PDF</button>
+                </div>
+            </div>
+            <div class="diagram-container">
+                <div class="diagram-header">
+                    <div>DIAGRAM: SINGLE LINE SCHEMATIC <span id="diagPanelText">-</span></div>
+                    <div>INCOMER: <span id="diagIncomerText">-</span></div>
+                    <div>SYSTEM: 380V 3PHASE 50HZ</div>
+                </div>
+                <div class="sld-box" id="singleLineDiagramVisual">
+                    <!-- Visual SLD representation -->
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- AREA TENGAH (METRICS, TABLE & SLD) -->
-        <div class="grid-col-center">
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-label">Total Connected Load</div>
-                    <div class="metric-value" id="dispTotalWatt">0.00 kW</div>
-                    <div class="metric-sub" id="dispTotalkVA">0.00 kVA</div>
-                </div>
-                <div class="metric-card success">
-                    <div class="metric-label">Total Max Demand Load</div>
-                    <div class="metric-value" id="dispDemandWatt">0.00 kW</div>
-                    <div class="metric-sub" id="dispDemandAmp">0.0 A (Total In)</div>
-                </div>
-                <div class="metric-card warning">
-                    <div class="metric-label">Rekomendasi Main Breaker</div>
-                    <div class="metric-value" id="dispMainBreaker">MCCB 6A</div>
-                    <div class="metric-sub" id="dispBreakerSpec">Safety Factor 125%</div>
-                </div>
-                <div class="metric-card danger">
-                    <div class="metric-label">Rekomendasi Feeder Main</div>
-                    <div class="metric-value" id="dispMainCable">-</div>
-                    <div class="metric-sub" id="dispKHA">KHA & Drop Tegangan</div>
-                </div>
-            </div>
-
-            <!-- Tab Navigation -->
-            <div class="tabs no-print">
-                <button class="tab-btn active" onclick="switchTab('tab-schedule', event)">📊 Schedule Master Load</button>
-                <button class="tab-btn" onclick="switchTab('tab-wiring', event)">⚡ Wiring Diagram (Single Line)</button>
-            </div>
-
-            <!-- Printable Header for Print Mode -->
-            <div class="print-only print-header">
-                <h2>REKAPITULASI DOKUMEN MASTER LOAD & WIRING DIAGRAM PANEL</h2>
-                <h3 id="printPanelTitle">-</h3>
-                <p id="printSub">Proyek: <span id="printProjName">-</span> | Sumber: <span id="printProjSource">-</span></p>
-                <p style="font-size: 9pt; margin-top: 4px;">Tanggal Perhitungan: <span id="printDate"></span></p>
-            </div>
-
-            <div id="tab-schedule" class="tab-content active">
-                <div class="card">
-                    <div class="card-title">
-                        <span>Daftar Schedule Load, Spesifikasi Kabel & Voltage Drop </span>
-                        <div class="no-print" style="display:flex; gap:8px;">
-                            <button class="btn btn-sm btn-excel" onclick="exportScheduleExcel()">📥 Export Schedule (.xlsx)</button>
-                            <button class="btn btn-sm btn-danger" onclick="promptClearAllLoads()">🗑️ Hapus Semua Data</button>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Tag / Nama Beban</th>
-                                    <th>Starter</th>
-                                    <th>Daya (W)</th>
-                                    <th>R (W)</th>
-                                    <th>S (W)</th>
-                                    <th>T (W)</th>
-                                    <th>Arus (A)</th>
-                                    <th>Proteksi Cabang</th>
-                                    <th>Inti & Rekomendasi Kabel</th>
-                                    <th>Panjang & Drop V (%)</th>
-                                    <th class="no-print">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="loadTableBody">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                            <tfoot>
-                                <tr style="background-color: #f8fafc; font-weight: bold;">
-                                    <td colspan="3" style="text-align: right;">TOTAL CONNECTED LOAD:</td>
-                                    <td id="footTotalWatt">0 W</td>
-                                    <td id="footPhaseR">0 W</td>
-                                    <td id="footPhaseS">0 W</td>
-                                    <td id="footPhaseT">0 W</td>
-                                    <td id="footTotalAmp">0 A</td>
-                                    <td colspan="4">Unbalance Factor: <span id="footUnbalance">0%</span></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-wiring" class="tab-content">
-                <div class="card">
-                    <div class="card-title">
-                        <span>Single Line Wiring Diagram Schematics (A3 Standard)</span>
-                        <small style="font-size: 11px; color: var(--text-muted);">Skematik berdasarkan standar industri electrical engineering</small>
-                    </div>
-                    <div class="diagram-container">
-                        <div class="diagram-header">
-                            <div>DIAGRAM: SINGLE LINE SCHEMATIC <span id="diagPanelText">-</span></div>
-                            <div>INCOMER: <span id="diagIncomerText">-</span></div>
-                            <div>SYSTEM: 380V 3PHASE 50HZ</div>
-                        </div>
-                        <div class="sld-box" id="singleLineDiagramVisual">
-                            <!-- Visual SLD ASCII / Graphical representation generated live -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="signature-card">
-                <div style="font-size:13px; font-weight:700; color:var(--primary-dark); border-bottom:1px solid var(--border-color); padding-bottom:6px; margin-bottom:10px;">
-                    ✍️ OTORISASI & DOKUMEN PERSETUJUAN KALKULASI
-                </div>
-                <div class="signature-grid">
-                    <div class="signature-box">
-                        <div class="signature-role">DISUSUN OLEH</div>
-                        <div class="signature-space">[ Tanda Tangan ]</div>
-                        <div>
-                            <div class="signature-name" id="dispPrepBy">Dadan Hamdalah Kahfi</div>
-                            <div class="signature-title">Electrical Designer / Drafter</div>
-                            <div class="signature-date" id="dispPrepDate">Tgl: -</div>
-                        </div>
-                    </div>
-
-                    <div class="signature-box">
-                        <div class="signature-role">DIPERIKSA OLEH</div>
-                        <div class="signature-space">[ Tanda Tangan ]</div>
-                        <div>
-                            <div class="signature-name" id="dispCheckBy">Budi Santoso, S.T.</div>
-                            <div class="signature-title">Manager Engineering</div>
-                            <div class="signature-date">Tgl: ........................</div>
-                        </div>
-                    </div>
-
-                    <div class="signature-box">
-                        <div class="signature-role">DISETUJUI OLEH</div>
-                        <div class="signature-space">[ Tanda Tangan ]</div>
-                        <div>
-                            <div class="signature-name" id="dispAppBy">Ir. Ahmad Hidayat</div>
-                            <div class="signature-title">Project Manager</div>
-                            <div class="signature-date">Tgl: ........................</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="print-only print-copyright">
-                © Copyright 2026 Engine Design System. All Rights Reserved.
-            </div>
+    <div class="signature-card">
+        <div style="font-size:12px; font-weight:700; color:var(--accent-cyan); border-bottom:1px solid var(--border-color); padding-bottom:4px; margin-bottom:8px;">
+            ✍️ OTORISASI & DOKUMEN PERSETUJUAN KALKULASI
         </div>
-
-        <!-- 2. FORM INPUT DATA BEBAN (KANAN) -->
-        <div class="grid-col-right no-print">
-            <div class="card">
-                <div class="card-title">
-                    <span id="formTitle">2. Input Data Beban Baru</span>
-                    <button class="btn btn-sm btn-outline" style="color:var(--text-muted); border-color:var(--border-color);" onclick="resetForm()">Reset</button>
+        <div class="signature-grid">
+            <div class="signature-box">
+                <div class="signature-role">DISUSUN OLEH</div>
+                <div class="signature-space">[ Tanda Tangan ]</div>
+                <div>
+                    <div class="signature-name" id="dispPrepBy">Dadan Hamdalah Kahfi</div>
+                    <div class="signature-title">Electrical Designer / Drafter</div>
+                    <div class="signature-date" id="dispPrepDate">Tgl: -</div>
                 </div>
-                <form id="loadForm" onsubmit="saveLoad(event)">
-                    <input type="hidden" id="editIndex" value="-1">
-                    <div class="form-group">
-                        <label>Nama Beban / Tag Peralatan</label>
-                        <input type="text" id="loadTag" class="form-control" placeholder="Contoh: BEBAN 1" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Kategori Beban</label>
-                            <select id="loadCat" class="form-control" onchange="autoFillCatDefaults()">
-                                <option value="HVAC">HVAC / AHU / Fan</option>
-                                <option value="MOTOR">Motor / Pump</option>
-                                <option value="HEATER">Electric Heater</option>
-                                <option value="LIGHTING">Penerangan / Lampu</option>
-                                <option value="RECEPTACLE">Stop Kontak / Utility</option>
-                                <option value="DAMPER">Damper / Valve</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Starter Type</label>
-                            <select id="starterType" class="form-control">
-                                <option value="DIRECT">Direct Feed</option>
-                                <option value="DOL">DOL + TOR</option>
-                                <option value="SD">Star-Delta + TOR</option>
-                                <option value="VFD">Inverter / VFD</option>
-                                <option value="SCR">SCR Controller</option>
-                            </select>
-                        </div>
-                    </div>
+            </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Kapasitas Daya</label>
-                            <input type="number" id="loadVal" class="form-control" placeholder="Nilai" step="any" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Satuan Unit</label>
-                            <select id="loadUnit" class="form-control">
-                                <option value="W">Watt (W)</option>
-                                <option value="kW">KiloWatt (kW)</option>
-                                <option value="HP">Horse Power (HP)</option>
-                                <option value="VA">Volt Ampere (VA)</option>
-                            </select>
-                        </div>
-                    </div>
+            <div class="signature-box">
+                <div class="signature-role">DIPERIKSA OLEH</div>
+                <div class="signature-space">[ Tanda Tangan ]</div>
+                <div>
+                    <div class="signature-name" id="dispCheckBy">Budi Santoso, S.T.</div>
+                    <div class="signature-title">Manager Engineering</div>
+                    <div class="signature-date">Tgl: ........................</div>
+                </div>
+            </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Jumlah (Qty)</label>
-                            <input type="number" id="loadQty" class="form-control" value="1" min="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Demand Factor (%)</label>
-                            <input type="number" id="demandFactor" class="form-control" value="100" min="10" max="100">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Konfigurasi Fasa</label>
-                            <select id="phaseConfig" class="form-control" onchange="onPhaseConfigChange()">
-                                <option value="3P">3-Phase (R-S-T)</option>
-                                <option value="R">1-Phase (Fasa R)</option>
-                                <option value="S">1-Phase (Fasa S)</option>
-                                <option value="T">1-Phase (Fasa T)</option>
-                                <option value="AUTO">Auto Balance 1P</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Breaker Cabang</label>
-                            <select id="breakerType" class="form-control">
-                                <option value="MCB 3P">MCB 3-Pole</option>
-                                <option value="MCCB 3P">MCCB 3-Pole</option>
-                                <option value="MCB 1P">MCB 1-Pole</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Cable Length & Cable Type for Branch Load -->
-                    <div class="form-row" style="background-color: #eff6ff; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #bfdbfe;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label style="color:var(--accent);">Panjang Kabel (m)</label>
-                            <input type="number" id="cableLength" class="form-control" placeholder="0" min="1" step="1" required>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label style="color:var(--accent);">Jenis Kabel</label>
-                            <select id="cableTypeSelect" class="form-control">
-                                <option value="NYY">NYY (Cu/PVC/PVC)</option>
-                                <option value="NYM">NYM (Cu/PVC/Indoor)</option>
-                                <option value="NYA">NYA (Kabel Tunggal)</option>
-                                <option value="NYFGBY">NYFGBY (Armored)</option>
-                                <option value="FRC">FRC (Tahan Api)</option>
-                                <option value="XLPE">XLPE / N2XY</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 8px;">
-                            <label style="color:var(--accent); font-weight:700;">📌 Jumlah Inti Kabel (Core)</label>
-                            <select id="cableCoreSelect" class="form-control" style="border: 2px solid var(--accent); background-color: #f0fdf4; font-weight: 600;">
-                                <option value="AUTO">⚙️ Auto Standard (1P: 3 Core P,N,G / 3P: 4 Core R,S,T,N)</option>
-                                <option value="3C">3 Core (Phase, Netral & Ground)</option>
-                                <option value="4C">4 Core (R, S, T, Netral)</option>
-                                <option value="5C">5 Core (R, S, T, Netral & Ground)</option>
-                                <option value="2C">2 Core (Phase & Netral)</option>
-                                <option value="1C">1 Core / Single Core (Paralel)</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0; grid-column: span 2; margin-top: 10px;">
-                            <label class="checkbox-label" style="color:var(--accent);">
-                                <input type="checkbox" id="cableConduitOption" checked>
-                                🔌 Menggunakan Pipa Conduit
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="checkbox-label" style="color:var(--accent); margin-bottom: 8px;">
-                            <input type="checkbox" id="groundType" checked>
-                            ⚡ Kabel Grounding Terpisah (+ NYA)
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;" id="saveBtn">
-                        ➕ Tambah Ke Daftar Beban
-                    </button>
-                </form>
+            <div class="signature-box">
+                <div class="signature-role">DISETUJUI OLEH</div>
+                <div class="signature-space">[ Tanda Tangan ]</div>
+                <div>
+                    <div class="signature-name" id="dispAppBy">Ir. Ahmad Hidayat</div>
+                    <div class="signature-title">Project Manager</div>
+                    <div class="signature-date">Tgl: ........................</div>
+                </div>
             </div>
         </div>
     </div>
@@ -905,7 +1056,7 @@
         <div class="modal-title" id="modalTitle">Konfirmasi</div>
         <div class="modal-body" id="modalBody">Apakah Anda yakin?</div>
         <div class="modal-actions">
-            <button class="btn btn-sm btn-outline" style="color:var(--text-dark); border-color:var(--border-color);" onclick="closeModal()">Batal</button>
+            <button class="btn btn-sm btn-outline" onclick="closeModal()">Batal</button>
             <button class="btn btn-sm btn-danger" id="modalConfirmBtn" onclick="confirmModalAction()">Ya, Lanjutkan</button>
         </div>
     </div>
@@ -920,7 +1071,7 @@
 
     const COPPER_RESISTIVITY = 0.0178;
 
-    // Tabel KHA Ampacity Kabel Tembaga Standard PUIL
+    // Tabel KHA Ampacity Kabel Tembaga Standard PUIL 2020
     const cableAmpacityTable = [
         { sqmm: 2.5, maxAmp: 26, grounding: 2.5, conduit: "20 mm" },
         { sqmm: 4, maxAmp: 34, grounding: 4, conduit: "25 mm" },
@@ -940,11 +1091,8 @@
     ];
 
     const standardBreakers = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 320, 400, 500, 630, 800];
-
-    // Standar Pasar Rasio CT Metering
     const standardCTRatings = [50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1600, 2000];
 
-    // 1. FUNGSI MENYESUAIKAN UKURAN BUSBAR BERDASARKAN BEBAN ARUS (STANDAR PUIL)
     function getRecommendedBusbar(currentAmp) {
         if (currentAmp <= 125) return "Cu 20 x 3 mm (KHA ~ 180A)";
         if (currentAmp <= 200) return "Cu 20 x 5 mm (KHA ~ 250A)";
@@ -955,11 +1103,22 @@
         return "Cu 80 x 10 mm (KHA ~ 1250A)";
     }
 
-    // 2. FUNGSI MENYESUAIKAN UKURAN CT BERDASARKAN ARUS BEBAN UTAMA
     function getRecommendedCT(currentAmp) {
         let match = standardCTRatings.find(r => r >= currentAmp);
         if (!match) match = standardCTRatings[standardCTRatings.length - 1];
         return `CT ${match}/5A`;
+    }
+
+    function applyPreset(cat, val, unit, phase, starter) {
+        document.getElementById('loadCat').value = cat;
+        document.getElementById('loadVal').value = val;
+        document.getElementById('loadUnit').value = unit;
+        document.getElementById('phaseConfig').value = phase;
+        document.getElementById('starterType').value = starter;
+        document.getElementById('loadTag').value = `${cat} ${val}${unit}`;
+        document.getElementById('cableLength').value = 15;
+        onPhaseConfigChange();
+        showToast(`Preset "${cat} ${val}${unit}" diterapkan.`);
     }
 
     function onPhaseConfigChange() {
@@ -1043,6 +1202,22 @@
         }
     }
 
+    function printScheduleOnly() {
+        document.body.classList.add('print-schedule');
+        window.print();
+        setTimeout(() => {
+            document.body.classList.remove('print-schedule');
+        }, 500);
+    }
+
+    function printWiringOnly() {
+        document.body.classList.add('print-wiring');
+        window.print();
+        setTimeout(() => {
+            document.body.classList.remove('print-wiring');
+        }, 500);
+    }
+
     function autoFillCatDefaults() {
         const cat = document.getElementById('loadCat').value;
         const starterSelect = document.getElementById('starterType');
@@ -1054,7 +1229,7 @@
         } else if (cat === 'HEATER') {
             starterSelect.value = 'SCR';
             breakerSelect.value = 'MCCB 3P';
-        } else if (cat === 'LIGHTING' || cat === 'RECEPTACLE' || cat === 'DAMPER') {
+        } else if (cat === 'LIGHTING' || cat === 'RECEPTACLE') {
             starterSelect.value = 'DIRECT';
             breakerSelect.value = 'MCB 1P';
         }
@@ -1071,7 +1246,6 @@
         return { rating: selectedRating, type: type };
     }
 
-    // 3 & 4. MENENTUKAN KABEL DENGAN SESUAI INTI CORE 1-PHASE (3-CORE) & 3-PHASE (4-CORE ATAU 5-CORE)
     function getRecommendedCable(ampNeeded, lengthMeters, cableType = "NYY", is3Phase = true, customCore = "AUTO", groundOption = "SEPARATE", conduitOption = "YES") {
         let matchIndex = cableAmpacityTable.findIndex(c => c.maxAmp >= ampNeeded);
         if (matchIndex === -1) matchIndex = cableAmpacityTable.length - 1;
@@ -1114,23 +1288,17 @@
 
         let coreText = "";
         
-        // Aturan Penentuan Core Kabel Terstruktur:
         if (customCore === "AUTO") {
             if (is3Phase) {
-                // Default 3 Phase: 4 Core (R, S, T, Netral)
                 coreText = `${cableType} 4x${match.sqmm} mm² (R, S, T, Netral)${groundText}`;
             } else {
-                // Default 1 Phase: 3 Core (Phase, Netral, Ground)
                 coreText = `${cableType} 3x${match.sqmm} mm² (Phase, Netral, Ground)`;
             }
         } else if (customCore === "3C") {
-            // 3-Core spesifik: Phase, Netral & Ground
             coreText = `${cableType} 3x${match.sqmm} mm² (Phase, Netral, Ground)`;
         } else if (customCore === "4C") {
-            // 4-Core spesifik: R, S, T, Netral
             coreText = `${cableType} 4x${match.sqmm} mm² (R, S, T, Netral)${groundText}`;
         } else if (customCore === "5C") {
-            // 5-Core spesifik: R, S, T, Netral, Ground
             coreText = `${cableType} 5x${match.sqmm} mm² (R, S, T, Netral, Ground)`;
         } else if (customCore === "1C") {
             let runCount = is3Phase ? 4 : 3;
@@ -1141,12 +1309,7 @@
             coreText = `${cableType} ${numCore}x${match.sqmm} mm²${groundText}`;
         }
 
-        let conduitText = "";
-        if (conduitOption === "YES") {
-            conduitText = `IN PVC HI DIA. ${match.conduit}`;
-        } else {
-            conduitText = "TANPA CONDUIT";
-        }
+        let conduitText = (conduitOption === "YES") ? `IN PVC HI DIA. ${match.conduit}` : "TANPA CONDUIT";
 
         return {
             cableText: coreText,
@@ -1213,8 +1376,8 @@
         } else {
             loads[index] = item;
             document.getElementById('editIndex').value = "-1";
-            document.getElementById('saveBtn').innerHTML = "➕ Tambah Ke Daftar Beban";
-            document.getElementById('formTitle').innerText = "2. Input Data Beban Baru";
+            document.getElementById('saveBtn').innerHTML = "➕ Simpan & Tambahkan Ke Daftar Beban";
+            document.getElementById('formTitle').innerText = "2. Input Data Beban Listrik";
             showToast(`Beban "${tag}" berhasil diperbarui.`);
         }
 
@@ -1225,8 +1388,8 @@
     function resetForm() {
         document.getElementById('loadForm').reset();
         document.getElementById('editIndex').value = "-1";
-        document.getElementById('saveBtn').innerHTML = "➕ Tambah Ke Daftar Beban";
-        document.getElementById('formTitle').innerText = "2. Input Data Beban Baru";
+        document.getElementById('saveBtn').innerHTML = "➕ Simpan & Tambahkan Ke Daftar Beban";
+        document.getElementById('formTitle').innerText = "2. Input Data Beban Listrik";
         document.getElementById('cableLength').value = "";
         document.getElementById('cableTypeSelect').value = "NYY";
         document.getElementById('cableCoreSelect').value = "AUTO";
@@ -1312,14 +1475,12 @@
         const sysPhase = document.getElementById('sysPhase').value;
         const cosPhi = parseFloat(document.getElementById('sysCosPhi').value) || 0.85;
         const safetyFactor = parseFloat(document.getElementById('safetyFactor').value) || 1.25;
-        const spareMargin = parseFloat(document.getElementById('spareMargin').value) || 20;
         const mainCableLen = parseFloat(document.getElementById('mainCableLen').value) || 0;
         const mainCableType = document.getElementById('mainCableType').value || "NYY";
         const mainCableCore = document.getElementById('mainCableCore').value || "AUTO";
         
         const mainConduitOption = document.getElementById('mainConduitOption').checked ? "YES" : "NO";
         const mainGroundType = document.getElementById('mainGroundType').checked ? "SEPARATE" : "INTEGRATED";
-        
         const panelTypeVal = document.getElementById('panelTypeSelect').value;
 
         document.getElementById('printProjName').innerText = projNameVal;
@@ -1381,30 +1542,29 @@
                 vDropBadgeClass = "badge-vdrop-danger";
             }
 
-            // Tampilan Badge Core Kabel
             let coreBadgeText = l.cableCoreSelect === 'AUTO' 
-                ? (l.phase === '3P' ? '4 Core (R,S,T,N)' : '3 Core (Phase,N,G)') 
+                ? (l.phase === '3P' ? '4-Core (R,S,T,N)' : '3-Core (P,N,G)') 
                 : `${l.cableCoreSelect} (${l.phase === '3P' ? '3P' : '1P'})`;
 
-            let gndBadgeText = (l.groundType === "INTEGRATED" || l.phase !== '3P') ? '✅ Integrated Core' : '⚡ + NYA Ground';
+            let gndBadgeText = (l.groundType === "INTEGRATED" || l.phase !== '3P') ? 'Integrated' : '+ NYA Ground';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${i + 1}</td>
                 <td><strong>${l.tag}</strong><br><small style="color:var(--text-muted);">${l.category}</small></td>
                 <td><span class="badge badge-phase-3p">${l.starter}</span></td>
-                <td><strong>${l.totalWatt.toLocaleString('id-ID')} W</strong><br><small>${l.qty}x ${l.rawVal} ${l.unit}</small></td>
+                <td><strong>${l.totalWatt.toLocaleString('id-ID')} W</strong><br><small style="color:var(--text-muted);">${l.qty}x ${l.rawVal} ${l.unit}</small></td>
                 <td>${wR ? wR.toLocaleString('id-ID') : '-'}</td>
                 <td>${wS ? wS.toLocaleString('id-ID') : '-'}</td>
                 <td>${wT ? wT.toLocaleString('id-ID') : '-'}</td>
                 <td><strong>${currentAmp.toFixed(1)} A</strong></td>
-                <td>${l.breakerType} ${branchBreaker.rating}A</td>
+                <td><span class="badge badge-phase-r">${l.breakerType} ${branchBreaker.rating}A</span></td>
                 <td>
                     <div style="font-size:11px;">
                         <span class="badge badge-phase-s" style="margin-bottom:2px;">📌 ${coreBadgeText}</span> 
                         <span class="badge badge-phase-t" style="margin-bottom:2px;">${gndBadgeText}</span><br>
                         <strong>${branchCable.cableText}</strong><br>
-                        <span style="color:${branchCable.conduitOption === 'NO' ? 'var(--text-muted)' : 'var(--accent)'}; font-weight:${branchCable.conduitOption === 'NO' ? 'normal' : '600'};">${branchCable.conduitText}</span>
+                        <small style="color:var(--text-muted);">${branchCable.conduitText}</small>
                     </div>
                 </td>
                 <td>
@@ -1414,7 +1574,7 @@
                     </div>
                 </td>
                 <td class="no-print">
-                    <button class="btn btn-sm btn-outline" style="color:var(--accent); border-color:var(--accent);" onclick="editLoad(${i})">✏️</button>
+                    <button class="btn btn-sm btn-outline" style="color:var(--accent-cyan);" onclick="editLoad(${i})">✏️</button>
                     <button class="btn btn-sm btn-danger" onclick="deleteLoad(${i})">🗑️</button>
                 </td>
             `;
@@ -1428,13 +1588,11 @@
             mainIncomerCurrent = grandDemandWatt / (220 * cosPhi);
         }
 
-        const spareFactorMultiplier = (1 + spareMargin / 100);
-        const designCurrent = mainIncomerCurrent * safetyFactor * spareFactorMultiplier;
+        const designCurrent = mainIncomerCurrent * safetyFactor;
         const mainBreaker = getRecommendedBreaker(designCurrent, true);
         const mainCable = getRecommendedCable(mainBreaker.rating, mainCableLen, mainCableType, sysPhase === '3P', mainCableCore, mainGroundType, mainConduitOption);
         const panelDimensionText = getSelectedPanelDimensions(mainBreaker.rating);
 
-        // Rekomendasi Busbar & CT Otomatis
         const recommendedBusbar = getRecommendedBusbar(mainBreaker.rating);
         const recommendedCT = getRecommendedCT(mainBreaker.rating);
 
@@ -1448,7 +1606,6 @@
             cosPhi,
             sysPhase,
             safetyFactor,
-            spareMargin,
             mainIncomerCurrent,
             designCurrent,
             mainBreaker,
@@ -1462,14 +1619,9 @@
             panelDimensionText,
             recommendedBusbar,
             recommendedCT,
-            phaseR,
-            phaseS,
-            phaseT,
+            phaseR, phaseS, phaseT,
             unbalancePct,
-            prepByVal,
-            formattedPrepDate,
-            checkByVal,
-            appByVal
+            prepByVal, formattedPrepDate, checkByVal, appByVal
         };
 
         document.getElementById('dispTotalWatt').innerText = `${(grandTotalWatt / 1000).toFixed(2)} kW`;
@@ -1517,7 +1669,7 @@
         sldText += `════════════════════════════╧═════════════════════════════════════════════════════════════════ BUSBAR MAIN R-S-T-N-PE (${calculatedSummary.recommendedBusbar})\n`;
 
         if (loads.length === 0) {
-            sldText += `\n    (Belum ada data beban. Silakan tambahkan beban baru pada formulir di samping.)\n`;
+            sldText += `\n    (Belum ada data beban. Silakan tambahkan beban baru pada form input di atas.)\n`;
         } else {
             loads.forEach((l, idx) => {
                 const currentAmp = l.calculatedAmp || 0;
@@ -1534,7 +1686,6 @@
 
         sldText += `    │\n`;
         sldText += `    └─── [SPARE CB] ─────> MCB 3P 16A (CADANGAN / FUTURE EXTENSION)\n`;
-
         sldText += `\nDESIGNED BY: ${prepBy.toUpperCase()} | DATE: ${calculatedSummary.formattedPrepDate}\n`;
 
         container.innerText = sldText;
@@ -1560,8 +1711,6 @@
         rows.push(["Spesifikasi CT Transformer:", calculatedSummary.recommendedCT]);
         rows.push(["Disusun Oleh:", calculatedSummary.prepByVal]);
         rows.push(["Tanggal Penyusunan:", calculatedSummary.formattedPrepDate]);
-        rows.push(["Diperiksa Oleh (Manager Eng.):", calculatedSummary.checkByVal]);
-        rows.push(["Disetujui Oleh (Project Manager):", calculatedSummary.appByVal]);
         rows.push([]);
 
         rows.push([
@@ -1573,21 +1722,11 @@
 
         loads.forEach((l, idx) => {
             rows.push([
-                idx + 1,
-                l.tag,
-                l.category,
-                l.starter,
-                `${l.rawVal} ${l.unit}`,
-                l.qty,
-                l.totalWatt,
-                l.df,
-                l.wR || 0,
-                l.wS || 0,
-                l.wT || 0,
+                idx + 1, l.tag, l.category, l.starter, `${l.rawVal} ${l.unit}`, l.qty,
+                l.totalWatt, l.df, l.wR || 0, l.wS || 0, l.wT || 0,
                 parseFloat((l.calculatedAmp || 0).toFixed(2)),
                 `${l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
-                l.cableTypeSelect || "NYY",
-                l.cableCoreSelect || "AUTO",
+                l.cableTypeSelect || "NYY", l.cableCoreSelect || "AUTO",
                 l.branchCable ? l.branchCable.cableText : '',
                 l.cableLength || 0,
                 l.branchCable ? parseFloat(l.branchCable.vDropPct.toFixed(2)) : 0,
@@ -1611,6 +1750,15 @@
             calculatedSummary.mainCable ? parseFloat(calculatedSummary.mainCable.vDropPct.toFixed(2)) : 0,
             calculatedSummary.mainCable ? calculatedSummary.mainCable.conduitText : ""
         ]);
+
+        rows.push([]);
+        rows.push([]);
+        rows.push(["OTORISASI & TANDA TANGAN PERSETUJUAN"]);
+        rows.push(["DISUSUN OLEH", "DIPERIKSA OLEH", "DISETUJUI OLEH"]);
+        rows.push(["[ Tanda Tangan ]", "[ Tanda Tangan ]", "[ Tanda Tangan ]"]);
+        rows.push([calculatedSummary.prepByVal, calculatedSummary.checkByVal, calculatedSummary.appByVal]);
+        rows.push(["Electrical Designer / Drafter", "Manager Engineering", "Project Manager"]);
+        rows.push([`Tgl: ${calculatedSummary.formattedPrepDate}`, "Tgl: ........................", "Tgl: ........................"]);
 
         const ws = XLSX.utils.aoa_to_sheet(rows);
         XLSX.utils.book_append_sheet(wb, ws, "Load Schedule");
@@ -1649,12 +1797,9 @@
             ["Sistem Voltase", document.getElementById('sysPhase').value === '3P' ? '3-Phase 380V / 220V' : '1-Phase 220V'],
             ["Cos Phi / Power Factor", parseFloat(document.getElementById('sysCosPhi').value) || 0.85],
             ["Safety Factor Breaker", parseFloat(document.getElementById('safetyFactor').value) || 1.25],
-            ["Spare Margin (%)", parseFloat(document.getElementById('spareMargin').value) || 20],
             ["Panjang Feeder Main Incomer", `${calculatedSummary.mainCableLen || 0} Meter`],
             ["Tipe Kabel Feeder Main", calculatedSummary.mainCableType || "NYY"],
             ["Konfigurasi Inti Main Incomer", calculatedSummary.mainCableCore || "AUTO"],
-            ["Penggunaan Conduit Feeder Utama", calculatedSummary.mainConduitOption === 'YES' ? 'Menggunakan Conduit' : 'TANPA CONDUIT'],
-            ["Kabel Grounding Terpisah Feeder Utama", calculatedSummary.mainGroundType === 'SEPARATE' ? 'Menggunakan NYA Terpisah' : 'Terintegrasi'],
             [""],
             ["HASIL KALKULASI TEKNIS PANEL"],
             ["Total Connected Load (kW)", `${((calculatedSummary.grandTotalWatt || 0) / 1000).toFixed(2)} kW`],
@@ -1664,14 +1809,15 @@
             ["Arus Desain Design Current (A)", `${(calculatedSummary.designCurrent || 0).toFixed(2)} A`],
             ["Rekomendasi Main Breaker", `${calculatedSummary.mainBreaker ? calculatedSummary.mainBreaker.type + " " + calculatedSummary.mainBreaker.rating + "A" : "-"}`],
             ["Rekomendasi Cable Feeder Main", calculatedSummary.mainCable ? calculatedSummary.mainCable.cableText : "-"],
-            ["Pipa Conduit Feeder Main", calculatedSummary.mainCable ? calculatedSummary.mainCable.conduitText : "-"],
             ["Drop Tegangan Feeder Main", calculatedSummary.mainCable ? `${calculatedSummary.mainCable.vDropPct.toFixed(2)}%` : "-"],
-            ["Fasa R Load", `${Math.round(calculatedSummary.phaseR || 0)} Watt`],
-            ["Fasa S Load", `${Math.round(calculatedSummary.phaseS || 0)} Watt`],
-            ["Fasa T Load", `${Math.round(calculatedSummary.phaseT || 0)} Watt`],
             ["Unbalance Factor Fasa", `${calculatedSummary.unbalancePct || 0}%`],
             [""],
-            [`© 2026 ${calculatedSummary.prepByVal || 'Engine Design System'}. All Rights Reserved.`]
+            ["OTORISASI & TANDA TANGAN PERSETUJUAN"],
+            ["DISUSUN OLEH", "DIPERIKSA OLEH", "DISETUJUI OLEH"],
+            ["[ Tanda Tangan ]", "[ Tanda Tangan ]", "[ Tanda Tangan ]"],
+            [calculatedSummary.prepByVal, calculatedSummary.checkByVal, calculatedSummary.appByVal],
+            ["Electrical Designer / Drafter", "Manager Engineering", "Project Manager"],
+            [`Tgl: ${calculatedSummary.formattedPrepDate}`, "Tgl: ........................", "Tgl: ........................"]
         ];
         const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
         XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan Panel");
@@ -1682,8 +1828,6 @@
             ["Nama Panel:", panelName],
             ["Disusun Oleh:", calculatedSummary.prepByVal],
             ["Tanggal:", calculatedSummary.formattedPrepDate],
-            ["Diperiksa Oleh:", calculatedSummary.checkByVal],
-            ["Disetujui Oleh:", calculatedSummary.appByVal],
             [""],
             [
                 "No", "Tag / Nama Beban", "Kategori", "Starter", "Kapasitas Unit", "Qty", 
@@ -1694,21 +1838,11 @@
 
         loads.forEach((l, idx) => {
             scheduleRows.push([
-                idx + 1,
-                l.tag,
-                l.category,
-                l.starter,
-                `${l.rawVal} ${l.unit}`,
-                l.qty,
-                l.totalWatt,
-                l.df,
-                l.wR || 0,
-                l.wS || 0,
-                l.wT || 0,
+                idx + 1, l.tag, l.category, l.starter, `${l.rawVal} ${l.unit}`, l.qty,
+                l.totalWatt, l.df, l.wR || 0, l.wS || 0, l.wT || 0,
                 parseFloat((l.calculatedAmp || 0).toFixed(2)),
                 `${l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
-                l.cableTypeSelect || "NYY",
-                l.cableCoreSelect || "AUTO",
+                l.cableTypeSelect || "NYY", l.cableCoreSelect || "AUTO",
                 l.branchCable ? l.branchCable.cableText : '',
                 l.cableLength || 0,
                 l.branchCable ? parseFloat(l.branchCable.vDropPct.toFixed(2)) : 0,
@@ -1717,21 +1851,14 @@
         });
 
         scheduleRows.push([]);
-        scheduleRows.push([
-            "TOTAL", "CONNECTED LOAD", "", "", "", "",
-            calculatedSummary.grandTotalWatt || 0, "",
-            Math.round(calculatedSummary.phaseR || 0),
-            Math.round(calculatedSummary.phaseS || 0),
-            Math.round(calculatedSummary.phaseT || 0),
-            parseFloat((calculatedSummary.mainIncomerCurrent || 0).toFixed(2)),
-            `Main: ${calculatedSummary.mainBreaker ? calculatedSummary.mainBreaker.type + " " + calculatedSummary.mainBreaker.rating + "A" : ""}`,
-            calculatedSummary.mainCableType || "NYY",
-            calculatedSummary.mainCableCore || "AUTO",
-            calculatedSummary.mainCable ? calculatedSummary.mainCable.cableText : "",
-            calculatedSummary.mainCableLen || 0,
-            calculatedSummary.mainCable ? parseFloat(calculatedSummary.mainCable.vDropPct.toFixed(2)) : 0,
-            calculatedSummary.mainCable ? calculatedSummary.mainCable.conduitText : ""
-        ]);
+        scheduleRows.push([]);
+        scheduleRows.push(["OTORISASI & TANDA TANGAN PERSETUJUAN"]);
+        scheduleRows.push(["DISUSUN OLEH", "DIPERIKSA OLEH", "DISETUJUI OLEH"]);
+        scheduleRows.push(["[ Tanda Tangan ]", "[ Tanda Tangan ]", "[ Tanda Tangan ]"]);
+        scheduleRows.push([calculatedSummary.prepByVal, calculatedSummary.checkByVal, calculatedSummary.appByVal]);
+        scheduleRows.push(["Electrical Designer / Drafter", "Manager Engineering", "Project Manager"]);
+        scheduleRows.push([`Tgl: ${calculatedSummary.formattedPrepDate}`, "Tgl: ........................", "Tgl: ........................"]);
+
         const wsSchedule = XLSX.utils.aoa_to_sheet(scheduleRows);
         XLSX.utils.book_append_sheet(wb, wsSchedule, "Schedule Load");
 
@@ -1748,3 +1875,7 @@
 
 </body>
 </html>
+'''
+
+with open("master_load_calculation_wiring_diagram_v2.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
