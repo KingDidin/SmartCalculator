@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Interaktif Head Total Pompa Multi-Pump</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        darkCard: '#1e293b',
+                        darkBorder: '#334155',
+                        accentBlue: '#3b82f6',
+                        accentHover: '#2563eb'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+            body {
+                background-color: white !important;
+                color: black !important;
+                font-size: 8pt;
+                line-height: 1.15;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card, header, footer {
+                background: white !important;
+                border: 1px solid #111 !important;
+                color: black !important;
+                box-shadow: none !important;
+                border-radius: 0px !important;
+                margin-bottom: 6px !important;
+                padding: 6px !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .print-hide-head-details {
+                display: none !important;
+            }
+            .bg-darkCard, .bg-slate-900, .bg-blue-950\/45, .bg-gradient-to-br {
+                background: white !important;
+                border: 1px solid #111 !important;
+                color: black !important;
+            }
+            table {
+                font-size: 7pt !important;
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            th, td {
+                border: 1px solid #111 !important;
+                padding: 2px 3px !important;
+                color: black !important;
+            }
+            .print-pump-block {
+                page-break-inside: avoid;
+                margin-bottom: 8px;
+                border: 1px solid #111;
+                padding: 6px;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+        }
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+    <header class="bg-darkCard border-b border-darkBorder sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">Modul Head Total Pompa Multi-Pump</h1>
+                    <p class="text-xs text-slate-400">Standar Darcy-Weisbach &amp; Analisis Komparatif Multi-Pompa (Optimized)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="addPumpVariant()" class="px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition shadow-md flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Tambah Pompa Lain
+                </button>
+                <button onclick="resetForm()" class="px-3 py-2 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition border border-darkBorder">
+                    Reset Form
+                </button>
+                <button onclick="window.print()" class="px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition shadow-md shadow-blue-600/30 flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Cetak Laporan
+                </button>
+                <button onclick="exportToExcel()" class="px-3 py-2 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition shadow-md shadow-emerald-600/30 flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export Excel
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
+        
+        <!-- Kolom Kiri: Form Input Data & Parameter Pompa Aktif -->
+        <div class="lg:col-span-7 space-y-6 no-print">
+            
+            <!-- Tab Pilihan Pompa -->
+            <div class="bg-darkCard border border-darkBorder rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pilih Pompa yang Diedit:</span>
+                    <span id="activePumpIndicator" class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30 font-bold">Sedang Mengedit: P-101</span>
+                </div>
+                <div id="pumpTabsContainer" class="flex flex-wrap gap-2">
+                    <!-- Dynamic pump selector tabs -->
+                </div>
+            </div>
+
+            <!-- 1. Informasi Project & Penyusun -->
+            <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-xl print-card">
+                <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                    <span class="bg-blue-500/20 text-blue-400 text-xs px-2.5 py-1 rounded-full border border-blue-500/30">1</span>
+                    Informasi Penyusun &amp; Proyek
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Nama Penyusun</label>
+                        <input type="text" id="inputPenyusun" placeholder="Masukkan nama..." value="Dadan Hamdalah Kahfi" oninput="updateActivePumpField('penyusun', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Tanggal</label>
+                        <input type="date" id="inputTanggal" oninput="updateActivePumpField('tanggal', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Nama Project</label>
+                        <input type="text" id="inputProject" placeholder="Contoh: Booster Pump Gedung A" value="Instalasi Air Bersih Gedung Utama" oninput="updateActivePumpField('project', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Tag Pompa</label>
+                        <input type="text" id="inputTag" placeholder="Contoh: P-101" value="P-101" oninput="updateActivePumpField('tag', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Parameter Aliran & Ketinggian (Hs) -->
+            <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-xl print-card">
+                <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                    <span class="bg-blue-500/20 text-blue-400 text-xs px-2.5 py-1 rounded-full border border-blue-500/30">2</span>
+                    Kapasitas Aliran &amp; Head Statis (H&#x2085;)
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Water Flow (Kapasitas)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="inputFlow" value="50" step="any" oninput="updateActivePumpField('flow', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            <select id="selectFlowUnit" onchange="updateActivePumpField('flowUnit', this.value); calculateAll();" class="bg-slate-900 border border-darkBorder rounded-xl px-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500">
+                                <option value="CMH" selected>CMH (m&#x00B3;/h)</option>
+                                <option value="LPM">LPM (L/min)</option>
+                                <option value="GPM">GPM (US gpm)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Head Statis (H&#x2085; - Ketinggian Vertikal, m)</label>
+                        <input type="number" id="inputHs" value="15" step="any" oninput="updateActivePumpField('hs', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Spesifikasi Pipa & Gesek (Hf) -->
+            <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-xl print-card">
+                <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                    <span class="bg-blue-500/20 text-blue-400 text-xs px-2.5 py-1 rounded-full border border-blue-500/30">3</span>
+                    Spesifikasi Pipa &amp; Gesek Pipa Lurus (H&#x1D53;)
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Jenis Material Pipa</label>
+                        <select id="selectPipeMaterial" onchange="updateDefaultRoughness(); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            <option value="0.020" selected>PVC (f &#x2248; 0.020)</option>
+                            <option value="0.022">Galvanized Iron (f &#x2248; 0.022)</option>
+                            <option value="0.018">Carbon Steel (f &#x2248; 0.018)</option>
+                            <option value="0.015">Stainless Steel (f &#x2248; 0.015)</option>
+                            <option value="0.019">PPR (f &#x2248; 0.019)</option>
+                            <option value="0.017">HDPE (f &#x2248; 0.017)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Diameter Dalam Pipa (D, mm)</label>
+                        <input type="number" id="inputDiameter" value="100" step="any" oninput="updateActivePumpField('diameter', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                        <span class="text-[10px] text-slate-500 mt-1 block">Otomatis dikonversi ke meter</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Panjang Total Pipa Lurus (L, m)</label>
+                        <input type="number" id="inputLength" value="75" step="any" oninput="updateActivePumpField('length', this.value); calculateAll();" class="w-full bg-slate-900 border border-darkBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-darkBorder flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-400">Koefisien Gesek Manual (f):</span>
+                        <input type="number" id="inputFrictionFactor" value="0.020" step="0.001" oninput="updateActivePumpField('friction', this.value); calculateAll();" class="w-24 bg-slate-900 border border-darkBorder rounded-lg px-2 py-1 text-xs text-white ml-2 inline-block">
+                    </div>
+                    <span class="text-xs text-slate-500 italic">Nilai f dapat disesuaikan manual jika diperlukan.</span>
+                </div>
+            </div>
+
+            <!-- 4. Hambatan Aksesori / Minor (Hm) dengan Fitting Selector -->
+            <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-xl print-card">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                        <span class="bg-blue-500/20 text-blue-400 text-xs px-2.5 py-1 rounded-full border border-blue-500/30">4</span>
+                        Fitting &amp; Aksesori Pipa (H&#x2098;)
+                    </h2>
+                    <button onclick="addFittingRow()" class="no-print bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Item
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="fittingTable">
+                        <thead>
+                            <tr class="border-b border-darkBorder text-xs text-slate-400">
+                                <th class="py-2.5 px-2 font-medium">Jenis Aksesori / Fitting</th>
+                                <th class="py-2.5 px-2 font-medium w-28">Koef. (K)</th>
+                                <th class="py-2.5 px-2 font-medium w-24">Jumlah</th>
+                                <th class="py-2.5 px-2 font-medium w-24 text-right no-print">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fittingTableBody" class="divide-y divide-darkBorder/50 text-sm">
+                            <!-- Dynamic Rows Here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 flex justify-between items-center text-xs text-slate-400 bg-slate-900/50 p-3 rounded-xl border border-darkBorder">
+                    <span>Total Nilai Koefisien Hambatan (&#x2211;K):</span>
+                    <span id="totalKDisplay" class="font-bold text-white text-sm">0.00</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="lg:col-span-5 space-y-6 w-full">
+            
+            <div class="bg-gradient-to-br from-slate-900 via-darkCard to-slate-900 border border-blue-500/30 rounded-2xl p-6 shadow-2xl sticky top-24 print-card">
+                
+                <!-- HEADER KHUSUS CETAK LAPORAN -->
+                <div class="print-only mb-2 text-center border-b border-black pb-2">
+                    <h2 class="text-xs font-bold uppercase tracking-wide text-black">LAPORAN REKAPITULASI PARAMETER &amp; MULTI-POMPA</h2>
+                    <p class="text-[9px] text-black">Standar Perhitungan Darcy-Weisbach &amp; Analisis Minor Loss</p>
+                    <div class="flex justify-between text-[9px] text-black mt-1 pt-1 border-t border-dotted border-black">
+                        <span>Proyek: <strong id="printProj">-</strong></span>
+                        <span>Tanggal: <strong id="printDate">-</strong></span>
+                    </div>
+                </div>
+
+                <!-- DAFTAR LENGKAP SEMUA POMPA BESERTA INFORMASI PROJECT, PARAMETER, & RINCIAN FITTING UNTUK CETAK LAPORAN -->
+                <div id="printAllPumpsContainer" class="print-only mb-3 space-y-2">
+                    <!-- Dynamic multi-pump print sections injected here -->
+                </div>
+
+                <div class="flex justify-between items-center pb-4 border-b border-darkBorder no-print">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Summary Pompa Aktif
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <span id="summaryTagBadge" class="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-lg font-bold shadow-md shadow-blue-600/30">P-101</span>
+                        <button onclick="removeActivePump()" id="btnDeleteActivePump" class="no-print text-rose-400 hover:text-rose-300 p-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 rounded border border-rose-500/30 transition title='Hapus Pompa Ini'">
+                            Hapus
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Info proyek ringkas (Hanya di layar) -->
+                <div class="py-3 border-b border-darkBorder grid grid-cols-2 gap-2 text-xs text-slate-300 no-print">
+                    <div><span class="text-slate-500 block">Penyusun:</span> <span id="outPenyusun" class="font-medium text-white">-</span></div>
+                    <div><span class="text-slate-500 block">Tanggal:</span> <span id="outTanggal" class="font-medium text-white">-</span></div>
+                    <div class="col-span-2"><span class="text-slate-500 block">Proyek:</span> <span id="outProject" class="font-medium text-white">-</span></div>
+                </div>
+
+                <!-- Hasil Utama Head Total (DISEMBUNYIKAN SAAT CETAK) -->
+                <div class="my-5 bg-blue-950/40 border border-blue-500/40 rounded-2xl p-4 text-center relative overflow-hidden shadow-inner print-hide-head-details">
+                    <div class="absolute -right-6 -bottom-6 opacity-10 no-print">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium uppercase tracking-wider text-blue-400">Head Total Pompa (H<sub>total</sub>)</span>
+                    <div class="text-3xl font-extrabold text-white mt-1 mb-1">
+                        <span id="resTotalHead">0.00</span> <span class="text-base font-semibold text-blue-400">m</span>
+                    </div>
+                    <div class="text-xs text-slate-300" id="resTotalHeadPsi">&#x2248; 0.00 psi</div>
+                </div>
+
+                <!-- Detail Perhitungan Parameter (DISEMBUNYIKAN SAAT CETAK) -->
+                <div class="space-y-2 print-hide-head-details">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Rincian Komponen Head</h3>
+                    
+                    <div class="flex justify-between items-center text-xs py-1.5 border-b border-darkBorder/50">
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Head Statis (H&#x2085;)
+                        </span>
+                        <span class="font-semibold text-white"><span id="resHs">0.00</span> m</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs py-1.5 border-b border-darkBorder/50">
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Kecepatan Aliran (v)
+                        </span>
+                        <span class="font-semibold text-white"><span id="resV">0.00</span> m/s</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs py-1.5 border-b border-darkBorder/50">
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-teal-500"></span> Head Kecepatan (H&#x2086;)
+                        </span>
+                        <span class="font-semibold text-white"><span id="resHv">0.00</span> m</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs py-1.5 border-b border-darkBorder/50">
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Head Gesek Pipa (H&#x1D53;)
+                        </span>
+                        <span class="font-semibold text-white"><span id="resHf">0.00</span> m</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs py-1.5">
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Head Aksesori (H&#x2098;)
+                        </span>
+                        <span class="font-semibold text-white"><span id="resHm">0.00</span> m</span>
+                    </div>
+                </div>
+
+                <!-- TABEL SUMMARY BEBERAPA POMPA (MULTI-PUMP SUMMARY TABLE) -->
+                <div class="mt-3 pt-3 border-t border-darkBorder print:border-black">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 print:text-black mb-2 flex items-center justify-between">
+                        <span>Tabel Summary Pompa</span>
+                        <span class="text-[10px] font-normal text-slate-400 print:text-black">Multi-Pump Analysis</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-darkBorder print:border-black text-[10px] text-slate-400 print:text-black bg-slate-900/60 print:bg-slate-100">
+                                    <th class="p-1.5">Tag</th>
+                                    <th class="p-1.5">Debit (Q)</th>
+                                    <th class="p-1.5">Hs (m)</th>
+                                    <th class="p-1.5">L (m)</th>
+                                    <th class="p-1.5">Diam (mm)</th>
+                                    <th class="p-1.5 text-right">Fitting</th>
+                                </tr>
+                            </thead>
+                            <tbody id="multiPumpSummaryTableBody" class="divide-y divide-darkBorder/40 print:divide-black">
+                                <!-- Dynamic multi-pump rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- BLOK TANDA TANGAN OTORISASI -->
+                <div class="print-only mt-4 pt-2 border-t border-black">
+                    <div class="text-[8.5px] font-bold text-center uppercase tracking-wide mb-1.5">OTORISASI &amp; PERSETUJUAN TEKNIS</div>
+                    <table class="w-full text-center text-[8px] border-collapse border border-black">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="border border-black p-0.5">DISUSUN OLEH</th>
+                                <th class="border border-black p-0.5">DIPERIKSA OLEH</th>
+                                <th class="border border-black p-0.5">DISETUJUI OLEH</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-black h-8 align-bottom pb-0.5"></td>
+                                <td class="border border-black h-8 align-bottom pb-0.5"></td>
+                                <td class="border border-black h-8 align-bottom pb-0.5"></td>
+                            </tr>
+                            <tr>
+                                <td class="border border-black p-0.5 font-bold" id="authPenyusun">Dadan Hamdalah Kahfi</td>
+                                <td class="border border-black p-0.5 font-bold">................</td>
+                                <td class="border border-black p-0.5 font-bold">................</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-black p-0.5 text-[7px]">Site Engineer</td>
+                                <td class="border border-black p-0.5 text-[7px]">Manager Engineering</td>
+                                <td class="border border-black p-0.5 text-[7px]">Project Manager</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="bg-darkCard border-t border-darkBorder py-6 mt-12 text-center text-xs text-slate-400 no-print">
+        <div class="max-w-7xl mx-auto px-4">
+            Copyright Dadan Hamdalah Kahfi 2026 - Multi-Pump Calculation Engine
+        </div>
+    </footer>
+
+    <script>
+        const fittingDatabase = [
+            { name: "Elbow 90° (Standard)", k: 0.75 },
+            { name: "Elbow 90° (Long Radius)", k: 0.40 },
+            { name: "Elbow 45°", k: 0.35 },
+            { name: "Tee (Flow Straight through-run)", k: 0.40 },
+            { name: "Tee (Flow Branch)", k: 1.50 },
+            { name: "Gate Valve (Fully Open)", k: 0.20 },
+            { name: "Gate Valve (Half Open)", k: 5.60 },
+            { name: "Ball Valve (Fully Open)", k: 0.05 },
+            { name: "Butterfly Valve (Fully Open)", k: 0.30 },
+            { name: "Check Valve (Swing)", k: 2.00 },
+            { name: "Check Valve (Lift)", k: 10.00 },
+            { name: "Strainer (Basket / Y-Type)", k: 2.50 },
+            { name: "Flexible Joint", k: 0.25 }
+        ];
+
+        let pumpsList = [
+            {
+                id: 1,
+                tag: "P-101",
+                penyusun: "Dadan Hamdalah Kahfi",
+                tanggal: new Date().toISOString().split('T')[0],
+                project: "Instalasi Air Bersih Gedung Utama",
+                flow: 50,
+                flowUnit: "CMH",
+                hs: 15,
+                material: "0.020",
+                diameter: 100,
+                length: 75,
+                friction: 0.020,
+                fittings: [
+                    { name: "Elbow 90° (Standard)", k: 0.75, qty: 4 },
+                    { name: "Gate Valve (Fully Open)", k: 0.20, qty: 2 },
+                    { name: "Check Valve (Swing)", k: 2.00, qty: 1 },
+                    { name: "Strainer (Basket / Y-Type)", k: 2.50, qty: 1 }
+                ]
+            },
+            {
+                id: 2,
+                tag: "P-102",
+                penyusun: "Dadan Hamdalah Kahfi",
+                tanggal: new Date().toISOString().split('T')[0],
+                project: "Instalasi Air Bersih Gedung Utama",
+                flow: 75,
+                flowUnit: "CMH",
+                hs: 18,
+                material: "0.022",
+                diameter: 150,
+                length: 90,
+                friction: 0.022,
+                fittings: [
+                    { name: "Elbow 90° (Standard)", k: 0.75, qty: 6 },
+                    { name: "Gate Valve (Fully Open)", k: 0.20, qty: 2 },
+                    { name: "Check Valve (Swing)", k: 2.00, qty: 1 }
+                ]
+            }
+        ];
+
+        let activePumpId = 1;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderPumpTabs();
+            loadActivePumpToForm();
+            calculateAll();
+        });
+
+        function renderPumpTabs() {
+            const container = document.getElementById('pumpTabsContainer');
+            container.innerHTML = '';
+
+            pumpsList.forEach(pump => {
+                const isActive = pump.id === activePumpId;
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1.5 rounded-xl text-xs font-medium transition border flex items-center gap-1.5 ${
+                    isActive 
+                        ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30' 
+                        : 'bg-slate-900 text-slate-300 border-darkBorder hover:bg-slate-800'
+                }`;
+                btn.innerHTML = `
+                    <span>${pump.tag}</span>
+                    <span class="text-[10px] opacity-75">(${pump.flow} ${pump.flowUnit})</span>
+                `;
+                btn.onclick = () => switchPump(pump.id);
+                container.appendChild(btn);
+            });
+        }
+
+        function switchPump(id) {
+            activePumpId = id;
+            renderPumpTabs();
+            loadActivePumpToForm();
+            calculateAll();
+        }
+
+        function addPumpVariant() {
+            const newId = pumpsList.length > 0 ? Math.max(...pumpsList.map(p => p.id)) + 1 : 1;
+            const newTag = `P-10${newId}`;
+            const base = pumpsList[0] || {};
+
+            pumpsList.push({
+                id: newId,
+                tag: newTag,
+                penyusun: base.penyusun || "Dadan Hamdalah Kahfi",
+                tanggal: base.tanggal || new Date().toISOString().split('T')[0],
+                project: base.project || "Project Utama",
+                flow: 60,
+                flowUnit: "CMH",
+                hs: 20,
+                material: "0.020",
+                diameter: 100,
+                length: 80,
+                friction: 0.020,
+                fittings: [
+                    { name: "Elbow 90° (Standard)", k: 0.75, qty: 4 },
+                    { name: "Gate Valve (Fully Open)", k: 0.20, qty: 2 }
+                ]
+            });
+
+            activePumpId = newId;
+            renderPumpTabs();
+            loadActivePumpToForm();
+            calculateAll();
+        }
+
+        function removeActivePump() {
+            if (pumpsList.length <= 1) {
+                console.warn("Minimal harus ada 1 pompa dalam kalkulasi.");
+                return;
+            }
+            pumpsList = pumpsList.filter(p => p.id !== activePumpId);
+            activePumpId = pumpsList[0].id;
+            renderPumpTabs();
+            loadActivePumpToForm();
+            calculateAll();
+        }
+
+        function loadActivePumpToForm() {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+
+            document.getElementById('activePumpIndicator').textContent = `Sedang Mengedit: ${pump.tag}`;
+            document.getElementById('summaryTagBadge').textContent = pump.tag;
+            document.getElementById('inputPenyusun').value = pump.penyusun;
+            document.getElementById('inputTanggal').value = pump.tanggal;
+            document.getElementById('inputProject').value = pump.project;
+            document.getElementById('inputTag').value = pump.tag;
+            document.getElementById('inputFlow').value = pump.flow;
+            document.getElementById('selectFlowUnit').value = pump.flowUnit;
+            document.getElementById('inputHs').value = pump.hs;
+            document.getElementById('selectPipeMaterial').value = pump.material;
+            document.getElementById('inputDiameter').value = pump.diameter;
+            document.getElementById('inputLength').value = pump.length;
+            document.getElementById('inputFrictionFactor').value = pump.friction;
+
+            renderFittingTable();
+        }
+
+        function updateActivePumpField(field, val) {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+
+            if (field === 'penyusun') pump.penyusun = val;
+            if (field === 'tanggal') pump.tanggal = val;
+            if (field === 'project') pump.project = val;
+            if (field === 'tag') {
+                pump.tag = val;
+                document.getElementById('summaryTagBadge').textContent = val;
+                document.getElementById('activePumpIndicator').textContent = `Sedang Mengedit: ${val}`;
+                renderPumpTabs();
+            }
+            if (field === 'flow') pump.flow = parseFloat(val) || 0;
+            if (field === 'flowUnit') pump.flowUnit = val;
+            if (field === 'hs') pump.hs = parseFloat(val) || 0;
+            if (field === 'material') pump.material = val;
+            if (field === 'diameter') pump.diameter = parseFloat(val) || 0;
+            if (field === 'length') pump.length = parseFloat(val) || 0;
+            if (field === 'friction') pump.friction = parseFloat(val) || 0;
+        }
+
+        function updateDefaultRoughness() {
+            const matSelect = document.getElementById('selectPipeMaterial');
+            document.getElementById('inputFrictionFactor').value = matSelect.value;
+            updateActivePumpField('material', matSelect.value);
+            updateActivePumpField('friction', parseFloat(matSelect.value));
+        }
+
+        function renderFittingTable() {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+
+            const tbody = document.getElementById('fittingTableBody');
+            tbody.innerHTML = '';
+
+            pump.fittings.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+
+                let optionsHtml = '';
+                fittingDatabase.forEach(f => {
+                    const selected = f.name === item.name ? 'selected' : '';
+                    optionsHtml += `<option value="${f.name}" data-k="${f.k}" ${selected}>${f.name}</option>`;
+                });
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2">
+                        <select onchange="updateFittingType(${index}, this)" class="w-full bg-slate-900 border border-darkBorder rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            ${optionsHtml}
+                        </select>
+                    </td>
+                    <td class="py-2.5 px-2">
+                        <input type="number" step="any" value="${item.k}" oninput="updateFittingK(${index}, this.value)" class="w-full bg-slate-900 border border-darkBorder rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                    </td>
+                    <td class="py-2.5 px-2">
+                        <input type="number" min="0" step="1" value="${item.qty}" oninput="updateFittingQty(${index}, this.value)" class="w-full bg-slate-900 border border-darkBorder rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                    </td>
+                    <td class="py-2.5 px-2 text-right no-print">
+                        <button onclick="removeFittingRow(${index})" class="text-rose-400 hover:text-rose-300 p-1.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addFittingRow() {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+            pump.fittings.push({ name: "Elbow 90° (Standard)", k: 0.75, qty: 1 });
+            renderFittingTable();
+            calculateAll();
+        }
+
+        function removeFittingRow(index) {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+            pump.fittings.splice(index, 1);
+            renderFittingTable();
+            calculateAll();
+        }
+
+        function updateFittingType(index, selectElem) {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+            const selectedOption = selectElem.options[selectElem.selectedIndex];
+            const kVal = parseFloat(selectedOption.getAttribute('data-k')) || 0;
+            pump.fittings[index].name = selectElem.value;
+            pump.fittings[index].k = kVal;
+            
+            const row = selectElem.closest('tr');
+            if (row) {
+                const kInput = row.querySelector('input[type="number"]');
+                if (kInput) kInput.value = kVal;
+            }
+            
+            calculateAll();
+        }
+
+        function updateFittingK(index, val) {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+            pump.fittings[index].k = parseFloat(val) || 0;
+            calculateAll();
+        }
+
+        function updateFittingQty(index, val) {
+            const pump = pumpsList.find(p => p.id === activePumpId);
+            if (!pump) return;
+            pump.fittings[index].qty = parseInt(val) || 0;
+            calculateAll();
+        }
+
+        function computePumpMetrics(pump) {
+            let Q_m3s = 0;
+            if (pump.flowUnit === 'CMH') {
+                Q_m3s = pump.flow / 3600;
+            } else if (pump.flowUnit === 'LPM') {
+                Q_m3s = pump.flow / 60000;
+            } else if (pump.flowUnit === 'GPM') {
+                Q_m3s = pump.flow * 0.0000630902;
+            }
+
+            const D = pump.diameter / 1000;
+            const Area = (Math.PI * Math.pow(D, 2)) / 4;
+            let v = Area > 0 ? Q_m3s / Area : 0;
+
+            const g = 9.8;
+            const Hv = Math.pow(v, 2) / (2 * g);
+            let Hf = D > 0 ? pump.friction * (pump.length / D) * Hv : 0;
+
+            let totalSumK = 0;
+            let totalFittingQty = 0;
+            pump.fittings.forEach(f => {
+                totalSumK += (f.k * f.qty);
+                totalFittingQty += f.qty;
+            });
+
+            let Hm = totalSumK * Hv;
+            let Htotal = pump.hs + Hv + Hf + Hm;
+            let HtotalPsi = Htotal * 1.42233;
+
+            return {
+                Q_m3s,
+                Area,
+                v,
+                Hv,
+                Hf,
+                totalSumK,
+                totalFittingQty,
+                Hm,
+                Htotal,
+                HtotalPsi
+            };
+        }
+
+        function calculateAll() {
+            const activePump = pumpsList.find(p => p.id === activePumpId);
+            if (!activePump) return;
+
+            document.getElementById('outPenyusun').textContent = activePump.penyusun;
+            document.getElementById('outTanggal').textContent = activePump.tanggal;
+            document.getElementById('outProject').textContent = activePump.project;
+            
+            document.getElementById('printProj').textContent = activePump.project;
+            document.getElementById('printDate').textContent = activePump.tanggal;
+            document.getElementById('authPenyusun').textContent = activePump.penyusun;
+
+            // Render informasi lengkap seluruh pompa untuk cetak laporan
+            const printAllContainer = document.getElementById('printAllPumpsContainer');
+            printAllContainer.innerHTML = '';
+
+            pumpsList.forEach((p, idx) => {
+                let fittingsHtml = '';
+                if (p.fittings.length === 0) {
+                    fittingsHtml = '<span class="italic text-slate-500">Tidak ada fitting/aksesori tercatat.</span>';
+                } else {
+                    p.fittings.forEach(f => {
+                        fittingsHtml += `<div class="flex justify-between border-b border-dotted border-slate-400 py-0.2"><span>- ${f.name} (K=${f.k})</span><span class="font-bold">Qty: ${f.qty}</span></div>`;
+                    });
+                }
+
+                const pumpBlock = document.createElement('div');
+                pumpBlock.className = 'print-pump-block bg-slate-50 text-[8.5px] text-black';
+                pumpBlock.innerHTML = `
+                    <div class="font-bold border-b border-black pb-0.5 mb-1 flex justify-between uppercase bg-slate-200 px-1">
+                        <span>POMPA #${idx + 1} [TAG: ${p.tag}]</span>
+                        <span>Project: ${p.project}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 px-1">
+                        <div>Penyusun: <span class="font-medium">${p.penyusun}</span></div>
+                        <div>Water Flow (Q): <span class="font-medium">${p.flow} ${p.flowUnit}</span></div>
+                        <div>Head Statis (Hs): <span class="font-medium">${p.hs} m</span></div>
+                        <div>Material Pipa: <span class="font-medium">f = ${p.friction}</span></div>
+                        <div>Diameter Pipa (D): <span class="font-medium">${p.diameter} mm</span></div>
+                        <div>Panjang Pipa (L): <span class="font-medium">${p.length} m</span></div>
+                    </div>
+                    <div class="mt-1 pt-1 border-t border-black font-bold px-1">Rincian Fitting &amp; Aksesori (${p.tag}):</div>
+                    <div class="mt-0.5 space-y-0.5 text-[8px] px-1">
+                        ${fittingsHtml}
+                    </div>
+                `;
+                printAllContainer.appendChild(pumpBlock);
+            });
+
+            const metrics = computePumpMetrics(activePump);
+
+            document.getElementById('totalKDisplay').textContent = metrics.totalSumK.toFixed(2);
+            document.getElementById('resTotalHead').textContent = metrics.Htotal.toFixed(2);
+            document.getElementById('resTotalHeadPsi').textContent = ` ≈ ${metrics.HtotalPsi.toFixed(2)} psi`;
+            document.getElementById('resHs').textContent = activePump.hs.toFixed(2);
+            document.getElementById('resV').textContent = metrics.v.toFixed(2);
+            document.getElementById('resHv').textContent = metrics.Hv.toFixed(4);
+            document.getElementById('resHf').textContent = metrics.Hf.toFixed(2);
+            document.getElementById('resHm').textContent = metrics.Hm.toFixed(2);
+
+            const summaryTableBody = document.getElementById('multiPumpSummaryTableBody');
+            summaryTableBody.innerHTML = '';
+
+            pumpsList.forEach(p => {
+                const m = computePumpMetrics(p);
+                const isCurrent = p.id === activePumpId;
+                const tr = document.createElement('tr');
+                tr.className = isCurrent 
+                    ? 'bg-blue-600/10 font-semibold border-l-2 border-blue-500' 
+                    : 'hover:bg-slate-800/30';
+                
+                tr.innerHTML = `
+                    <td class="p-1.5">${p.tag} ${isCurrent ? '<span class="text-[9px] text-blue-400 no-print">(Aktif)</span>' : ''}</td>
+                    <td class="p-1.5">${p.flow} ${p.flowUnit}</td>
+                    <td class="p-1.5">${p.hs} m</td>
+                    <td class="p-1.5">${p.length} m</td>
+                    <td class="p-1.5">${p.diameter} mm</td>
+                    <td class="p-1.5 text-right font-bold text-white print:text-black">${m.totalFittingQty} item</td>
+                `;
+                summaryTableBody.appendChild(tr);
+            });
+        }
+
+        function resetForm() {
+            pumpsList = [
+                {
+                    id: 1,
+                    tag: "P-101",
+                    penyusun: "Dadan Hamdalah Kahfi",
+                    tanggal: new Date().toISOString().split('T')[0],
+                    project: "Instalasi Air Bersih Gedung Utama",
+                    flow: 50,
+                    flowUnit: "CMH",
+                    hs: 15,
+                    material: "0.020",
+                    diameter: 100,
+                    length: 75,
+                    friction: 0.020,
+                    fittings: [
+                        { name: "Elbow 90° (Standard)", k: 0.75, qty: 4 },
+                        { name: "Gate Valve (Fully Open)", k: 0.20, qty: 2 },
+                        { name: "Check Valve (Swing)", k: 2.00, qty: 1 },
+                        { name: "Strainer (Basket / Y-Type)", k: 2.50, qty: 1 }
+                    ]
+                }
+            ];
+            activePumpId = 1;
+            renderPumpTabs();
+            loadActivePumpToForm();
+            calculateAll();
+        }
+
+        function exportToExcel() {
+            const activePump = pumpsList.find(p => p.id === activePumpId);
+            if (!activePump) return;
+
+            let multiPumpRows = '';
+            pumpsList.forEach(p => {
+                const m = computePumpMetrics(p);
+                multiPumpRows += `
+                    <tr>
+                        <td>${p.tag}</td>
+                        <td>${p.project}</td>
+                        <td>${p.flow} ${p.flowUnit}</td>
+                        <td>${p.hs} m</td>
+                        <td>${p.length} m</td>
+                        <td>${p.diameter} mm</td>
+                        <td>${m.Hf.toFixed(2)} m</td>
+                        <td>${m.totalFittingQty} item</td>
+                    </tr>
+                `;
+            });
+
+            let htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head><meta charset="utf-8"></head>
+                <body>
+                <h2>LAPORAN REKAPITULASI PARAMETER &amp; MULTI-POMPA</h2>
+                <table>
+                    <tr><td><b>Nama Penyusun</b></td><td>${activePump.penyusun}</td></tr>
+                    <tr><td><b>Tanggal</b></td><td>${activePump.tanggal}</td></tr>
+                    <tr><td><b>Nama Project</b></td><td>${activePump.project}</td></tr>
+                </table>
+                <br/>
+                <h3>TABEL SUMMARY PARAMETER &amp; POMPA</h3>
+                <table border="1">
+                    <tr style="background:#f2f2f2;">
+                        <th>Tag Pompa</th>
+                        <th>Project</th>
+                        <th>Water Flow (Q)</th>
+                        <th>Head Statis (Hs)</th>
+                        <th>Panjang Pipa (L)</th>
+                        <th>Diameter Pipa (D)</th>
+                        <th>Gesek Pipa Lurus (Hf)</th>
+                        <th>Jumlah Fitting</th>
+                    </tr>
+                    ${multiPumpRows}
+                </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Multi_Pump_Parameter_Report.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+
+</body>
+</html>
