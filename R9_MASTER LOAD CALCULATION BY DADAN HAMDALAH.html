@@ -1300,9 +1300,28 @@
         return { rating: selectedRating, type: type };
     }
 
-    function getRecommendedCable(ampNeeded, lengthMeters, cableType = "NYY", is3Phase = true, customCore = "AUTO", groundOption = "SEPARATE", conduitOption = "YES") {
+    function isMachineLoad(load) {
+        const machineCategories = ['MOTOR', 'HVAC'];
+        const machineKeywords = /pompa|pump|fan|blower|motor|mesin|kompresor|compressor|ahu|hvac/i;
+        return machineCategories.includes(load.category) || machineKeywords.test(load.tag || '');
+    }
+
+    function increaseBreakerOneLevel(breaker) {
+        const currentIndex = standardBreakers.indexOf(breaker.rating);
+        const nextRating = currentIndex >= 0 && currentIndex < standardBreakers.length - 1
+            ? standardBreakers[currentIndex + 1]
+            : breaker.rating;
+        return { ...breaker, rating: nextRating };
+    }
+
+    function getRecommendedCable(ampNeeded, lengthMeters, cableType = "NYY", is3Phase = true, customCore = "AUTO", groundOption = "SEPARATE", conduitOption = "YES", forceUpsize = false) {
         let matchIndex = cableAmpacityTable.findIndex(c => c.maxAmp >= ampNeeded);
         if (matchIndex === -1) matchIndex = cableAmpacityTable.length - 1;
+
+        // Naik satu ukuran kabel untuk beban mesin guna mengantisipasi starting current.
+        if (forceUpsize && matchIndex < cableAmpacityTable.length - 1) {
+            matchIndex++;
+        }
 
         let match = cableAmpacityTable[matchIndex];
 
@@ -1558,23 +1577,31 @@
 
             let wR = 0, wS = 0, wT = 0;
             let currentAmp = 0;
+            const loadCosPhi = 0.9;
 
             if (l.phase === '3P') {
                 wR = wS = wT = Math.round(l.totalWatt / 3);
                 phaseR += demandWatt / 3;
                 phaseS += demandWatt / 3;
                 phaseT += demandWatt / 3;
-                currentAmp = l.totalWatt / (Math.sqrt(3) * 380 * cosPhi);
+                currentAmp = l.totalWatt / (Math.sqrt(3) * 380 * loadCosPhi);
             } else {
                 if (l.phase === 'R') { wR = l.totalWatt; phaseR += demandWatt; }
                 else if (l.phase === 'S') { wS = l.totalWatt; phaseS += demandWatt; }
                 else if (l.phase === 'T') { wT = l.totalWatt; phaseT += demandWatt; }
-                currentAmp = l.totalWatt / (220 * cosPhi);
+                currentAmp = l.totalWatt / (220 * loadCosPhi);
             }
 
             const breakerAmpNeeded = currentAmp * safetyFactor;
             const baseBreakerType = l.breakerType ? l.breakerType.split(" ")[0] : "MCB";
-            const branchBreaker = getRecommendedBreaker(breakerAmpNeeded, false, `${baseBreakerType} ${l.phase === '3P' ? '3P' : '1P'}`);
+            let branchBreaker = getRecommendedBreaker(
+                breakerAmpNeeded,
+                false,
+                `${baseBreakerType} ${l.phase === '3P' ? '3P' : '1P'}`
+            );
+            if (isMachineLoad(l)) {
+                branchBreaker = increaseBreakerOneLevel(branchBreaker);
+            }
             const branchCable = getRecommendedCable(
                 branchBreaker.rating, 
                 l.cableLength || 0, 
@@ -1582,7 +1609,8 @@
                 l.phase === '3P',
                 l.cableCoreSelect || "AUTO",
                 l.groundType || "SEPARATE",
-                l.cableConduitOption || "YES"
+                l.cableConduitOption || "YES",
+                isMachineLoad(l)
             );
 
             l.calculatedAmp = currentAmp;
@@ -1731,7 +1759,7 @@
             loads.forEach((l, idx) => {
                 const currentAmp = l.calculatedAmp || 0;
                 const brk = l.branchBreaker || getRecommendedBreaker(currentAmp * 1.25);
-                const cbl = l.branchCable || getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES");
+                const cbl = l.branchCable || getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES", isMachineLoad(l));
 
                 sldText += `    │\n`;
                 sldText += `    ├─── [CB #${(idx+1).toString().padStart(2, '0')}] ───> ${brk.type} ${brk.rating}A  (${l.starter})\n`;
