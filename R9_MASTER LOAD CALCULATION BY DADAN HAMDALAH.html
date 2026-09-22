@@ -1314,8 +1314,12 @@
         return { ...breaker, rating: nextRating };
     }
 
-    function getRecommendedCable(ampNeeded, lengthMeters, cableType = "NYY", is3Phase = true, customCore = "AUTO", groundOption = "SEPARATE", conduitOption = "YES", forceUpsize = false) {
-        let matchIndex = cableAmpacityTable.findIndex(c => c.maxAmp >= ampNeeded);
+    function getRecommendedCable(ampNeeded, lengthMeters, cableType = "NYY", is3Phase = true, customCore = "AUTO", groundOption = "SEPARATE", conduitOption = "YES", forceUpsize = false, requireKhaAbove = false) {
+        // Main feeder harus memiliki KHA yang strictly lebih besar dari kapasitas breaker.
+        const ampacityCondition = requireKhaAbove
+            ? cable => cable.maxAmp > ampNeeded
+            : cable => cable.maxAmp >= ampNeeded;
+        let matchIndex = cableAmpacityTable.findIndex(ampacityCondition);
         if (matchIndex === -1) matchIndex = cableAmpacityTable.length - 1;
 
         // Naik satu ukuran kabel untuk beban mesin guna mengantisipasi starting current.
@@ -1400,6 +1404,25 @@
             customCore: customCore,
             groundOption: groundOption,
             conduitOption: conduitOption
+        };
+    }
+
+    // Star-Delta membutuhkan dua jalur kabel: motor 3-core dan feeder 4-core.
+    function getStarDeltaCable(ampNeeded, lengthMeters, cableType, forceUpsize = false) {
+        const cable = getRecommendedCable(
+            ampNeeded,
+            lengthMeters,
+            cableType,
+            true,
+            "3C_RST",
+            "INTEGRATED",
+            "YES",
+            forceUpsize
+        );
+
+        return {
+            ...cable,
+            cableText: `${cableType} 3 x ${cable.sqmm} mm² + ${cableType} 4 x ${cable.sqmm} mm² (Star-Delta)`
         };
     }
 
@@ -1602,16 +1625,23 @@
             if (isMachineLoad(l)) {
                 branchBreaker = increaseBreakerOneLevel(branchBreaker);
             }
-            const branchCable = getRecommendedCable(
-                branchBreaker.rating, 
-                l.cableLength || 0, 
-                l.cableTypeSelect || "NYY", 
-                l.phase === '3P',
-                l.cableCoreSelect || "AUTO",
-                l.groundType || "SEPARATE",
-                l.cableConduitOption || "YES",
-                isMachineLoad(l)
-            );
+            const branchCable = l.starter === 'SD'
+                ? getStarDeltaCable(
+                    branchBreaker.rating,
+                    l.cableLength || 0,
+                    l.cableTypeSelect || "NYY",
+                    isMachineLoad(l)
+                )
+                : getRecommendedCable(
+                    branchBreaker.rating,
+                    l.cableLength || 0,
+                    l.cableTypeSelect || "NYY", 
+                    l.phase === '3P',
+                    l.cableCoreSelect || "AUTO",
+                    l.groundType || "SEPARATE",
+                    l.cableConduitOption || "YES",
+                    isMachineLoad(l)
+                );
 
             l.calculatedAmp = currentAmp;
             l.branchBreaker = branchBreaker;
@@ -1675,7 +1705,17 @@
 
         const designCurrent = mainIncomerCurrent * safetyFactor;
         const mainBreaker = getDynamicMainBreaker(designCurrent);
-        const mainCable = getRecommendedCable(mainBreaker.rating, mainCableLen, mainCableType, sysPhase === '3P', mainCableCore, mainGroundType, mainConduitOption);
+        const mainCable = getRecommendedCable(
+            mainBreaker.rating,
+            mainCableLen,
+            mainCableType,
+            sysPhase === '3P',
+            mainCableCore,
+            mainGroundType,
+            mainConduitOption,
+            true,
+            true
+        );
         const panelDimensionText = getSelectedPanelDimensions(mainBreaker.rating);
 
         const recommendedBusbar = getRecommendedBusbar(mainBreaker.rating);
@@ -1759,7 +1799,9 @@
             loads.forEach((l, idx) => {
                 const currentAmp = l.calculatedAmp || 0;
                 const brk = l.branchBreaker || getRecommendedBreaker(currentAmp * 1.25);
-                const cbl = l.branchCable || getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES", isMachineLoad(l));
+                const cbl = l.branchCable || (l.starter === 'SD'
+                    ? getStarDeltaCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", isMachineLoad(l))
+                    : getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES", isMachineLoad(l)));
 
                 sldText += `    │\n`;
                 sldText += `    ├─── [CB #${(idx+1).toString().padStart(2, '0')}] ───> ${brk.type} ${brk.rating}A  (${l.starter})\n`;
