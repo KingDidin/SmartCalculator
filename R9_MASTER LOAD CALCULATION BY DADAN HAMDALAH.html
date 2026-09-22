@@ -153,18 +153,6 @@
             gap: 8px;
         }
 
-        .form-section-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 10px;
-            margin-bottom: 6px;
-            padding-bottom: 2px;
-            border-bottom: 1px dashed var(--border-color);
-        }
-
         .form-group { margin-bottom: 10px; }
         .form-group label {
             display: block;
@@ -479,7 +467,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Print classes for isolated printing of active tabs */
         body.print-schedule .no-print,
         body.print-schedule #tab-wiring,
         body.print-schedule .metrics-grid,
@@ -744,9 +731,20 @@
                 <div class="form-group">
                     <label>Jenis Kabel Main</label>
                     <select id="mainCableType" class="form-control" onchange="calculateAll()">
-                        <option value="NYY">NYY (Cu/PVC/PVC Outdoor)</option>
-                        <option value="NYFGBY">NYFGBY (Armored Tanaman)</option>
-                        <option value="FRC">FRC (Fire Resistant Cable)</option>
+                        <option value="NYY">NYY: Tahan air/cuaca outdoor / dalam tanah</option>
+                        <option value="NYM">NYM: Isolasi ganda, umum untuk indoor</option>
+                        <option value="NYA">NYA: Inti tunggal dengan 1 lapis isolasi PVC (wajib conduit)</option>
+                        <option value="NYAF">NYAF: Serabut fleksibel untuk panel & kontrol</option>
+                        <option value="NYMHY">NYMHY: Serabut lentur putih/abu untuk elektronik indoor</option>
+                        <option value="NYYHY">NYYHY: Serabut lentur selubung hitam untuk portabel outdoor</option>
+                        <option value="NYFGBY">NYFGBY: Kabel tanah berpelindung kawat baja pipih</option>
+                        <option value="NYRGBY">NYRGBY: Kabel tanah berpelindung kawat baja bulat</option>
+                        <option value="NYBY">NYBY: Kabel tanah berpelindung pita baja</option>
+                        <option value="AAAC">AAAC: Aluminium tanpa isolasi transmisi udara</option>
+                        <option value="ACSR">ACSR: Aluminium inti baja tegangan tinggi SUTT/SUTET</option>
+                        <option value="BC">BC: Tembaga telanjang grounding & penangkal petir</option>
+                        <option value="TIC">Kabel Twisted / TIC / NFA2X: Udara pilin PLN ke rumah</option>
+                        <option value="FRC">FRC: Fire Resistant Cable</option>
                         <option value="N2XSY">N2XSY / XLPE</option>
                     </select>
                 </div>
@@ -857,7 +855,10 @@
                         <select id="breakerType" class="form-control">
                             <option value="MCB 3P">MCB 3-Pole</option>
                             <option value="MCCB 3P">MCCB 3-Pole</option>
+                            <option value="ELCB 3P">ELCB / RCCB 3-Pole</option>
+                            <option value="ACB 3P">ACB 3-Pole</option>
                             <option value="MCB 1P">MCB 1-Pole</option>
+                            <option value="ELCB 1P">ELCB 1-Pole</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -867,10 +868,19 @@
                     <div class="form-group">
                         <label>Jenis Kabel</label>
                         <select id="cableTypeSelect" class="form-control">
-                            <option value="NYY">NYY (Cu/PVC/PVC)</option>
-                            <option value="NYM">NYM (Cu/PVC Indoor)</option>
-                            <option value="NYA">NYA (Kabel Tunggal)</option>
-                            <option value="NYFGBY">NYFGBY (Armored)</option>
+                            <option value="NYY">NYY (Tahan air/cuaca outdoor / dalam tanah)</option>
+                            <option value="NYM">NYM (Isolasi ganda, umum untuk indoor)</option>
+                            <option value="NYA">NYA (Inti tunggal, wajib conduit)</option>
+                            <option value="NYAF">NYAF (Serabut fleksibel panel & kontrol)</option>
+                            <option value="NYMHY">NYMHY (Serabut lentur putih/abu elektronik)</option>
+                            <option value="NYYHY">NYYHY (Serabut lentur hitam outdoor)</option>
+                            <option value="NYFGBY">NYFGBY (Tanah berpelindung kawat baja pipih)</option>
+                            <option value="NYRGBY">NYRGBY (Tanah berpelindung kawat baja bulat)</option>
+                            <option value="NYBY">NYBY (Tanah berpelindung pita baja)</option>
+                            <option value="AAAC">AAAC (Aluminium tanpa isolasi udara)</option>
+                            <option value="ACSR">ACSR (Aluminium inti baja SUTT/SUTET)</option>
+                            <option value="BC">BC (Tembaga telanjang grounding)</option>
+                            <option value="TIC">Kabel Twisted / TIC / NFA2X (Udara PLN ke rumah)</option>
                             <option value="FRC">FRC (Tahan Api)</option>
                         </select>
                     </div>
@@ -882,6 +892,7 @@
                         <select id="cableCoreSelect" class="form-control">
                             <option value="AUTO">⚙️ Auto Standard (3P: 4-Core / 1P: 3-Core)</option>
                             <option value="3C">3 Core (Phase, Netral, Ground)</option>
+                            <option value="3C_RST">3 Core (R, S, T)</option>
                             <option value="4C">4 Core (R, S, T, Netral)</option>
                             <option value="5C">5 Core (R, S, T, Netral, Ground)</option>
                         </select>
@@ -916,7 +927,7 @@
         </div>
         <div class="metric-card warning">
             <div class="metric-label">Rekomendasi Main Breaker</div>
-            <div class="metric-value" id="dispMainBreaker">MCCB 6A</div>
+            <div class="metric-value" id="dispMainBreaker">MCB 6A</div>
             <div class="metric-sub" id="dispBreakerSpec">Safety Factor 125%</div>
         </div>
         <div class="metric-card danger">
@@ -1090,8 +1101,8 @@
         { sqmm: 300, maxAmp: 523, grounding: 150, conduit: "90 mm" }
     ];
 
-    const standardBreakers = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 320, 400, 500, 630, 800];
-    const standardCTRatings = [50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1600, 2000];
+    const standardBreakers = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 320, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6300];
+    const standardCTRatings = [50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1600, 2000, 2500, 3000, 4000, 5000, 6000];
 
     function getRecommendedBusbar(currentAmp) {
         if (currentAmp <= 125) return "Cu 20 x 3 mm (KHA ~ 180A)";
@@ -1107,6 +1118,40 @@
         let match = standardCTRatings.find(r => r >= currentAmp);
         if (!match) match = standardCTRatings[standardCTRatings.length - 1];
         return `CT ${match}/5A`;
+    }
+
+    function getDynamicMainBreaker(ampNeeded, forceType = "") {
+        let selectedRating = standardBreakers.find(b => b >= ampNeeded);
+        if (!selectedRating) selectedRating = standardBreakers[standardBreakers.length - 1];
+
+        if (forceType && forceType !== "") {
+            return { rating: selectedRating, type: forceType, usage: "Custom/Manual" };
+        }
+
+        // Penyesuaian Berdasarkan Ketentuan:
+        // 1. MCB (Miniature Circuit Breaker): Hingga 125A (Standar umum 6A - 63A) -> Penggunaan: Rumah tangga & panel sub-distribusi kecil.
+        // 2. MCCB (Moulded Case Circuit Breaker): Hingga 1600A (Beberapa heavy-duty hingga 2500A) -> Penggunaan: Gedung komersial, ruko, industri menengah.
+        // 3. ACB (Air Circuit Breaker): Hingga 6300A -> Penggunaan: Panel utama tegangan rendah (LVMDP) di gedung bertingkat atau pabrik besar.
+        // 4. VCB (Vacuum Circuit Breaker): Hingga 4000A -> Penggunaan: Jaringan kelistrikan tegangan menengah (Medium Voltage / 20kV).
+
+        let type = "MCB 3P";
+        let usage = "Rumah tangga & panel sub-distribusi kecil";
+
+        if (selectedRating <= 125) {
+            type = "MCB 3P";
+            usage = "Rumah tangga & panel sub-distribusi kecil (Standar 6A-63A)";
+        } else if (selectedRating <= 1600) {
+            type = "MCCB 3P";
+            usage = "Gedung komersial, ruko, dan industri menengah";
+        } else if (selectedRating <= 6300) {
+            type = "ACB 3P";
+            usage = "Panel utama tegangan rendah (LVMDP) di gedung bertingkat / pabrik besar";
+        } else {
+            type = "VCB 3P";
+            usage = "Jaringan kelistrikan tegangan menengah (Medium Voltage / 20kV)";
+        }
+
+        return { rating: selectedRating, type: type, usage: usage };
     }
 
     function applyPreset(cat, val, unit, phase, starter) {
@@ -1235,13 +1280,22 @@
         }
     }
 
-    function getRecommendedBreaker(ampNeeded, forceMCCB = false) {
+    function getRecommendedBreaker(ampNeeded, isMain = false, forceType = "") {
         let selectedRating = standardBreakers.find(b => b >= ampNeeded);
         if (!selectedRating) selectedRating = standardBreakers[standardBreakers.length - 1];
         
+        if (forceType && forceType !== "") {
+            return { rating: selectedRating, type: forceType };
+        }
+
         let type = "MCB 3P";
-        if (forceMCCB || selectedRating > 63) {
-            type = "MCCB 3P";
+        if (isMain) {
+            if (selectedRating <= 125) type = "MCB 3P";
+            else if (selectedRating <= 1600) type = "MCCB 3P";
+            else if (selectedRating <= 6300) type = "ACB 3P";
+            else type = "VCB 3P";
+        } else {
+            if (selectedRating > 63) type = "MCCB 3P";
         }
         return { rating: selectedRating, type: type };
     }
@@ -1296,6 +1350,8 @@
             }
         } else if (customCore === "3C") {
             coreText = `${cableType} 3x${match.sqmm} mm² (Phase, Netral, Ground)`;
+        } else if (customCore === "3C_RST") {
+            coreText = `${cableType} 3x${match.sqmm} mm² (R, S, T)`;
         } else if (customCore === "4C") {
             coreText = `${cableType} 4x${match.sqmm} mm² (R, S, T, Netral)${groundText}`;
         } else if (customCore === "5C") {
@@ -1517,7 +1573,8 @@
             }
 
             const breakerAmpNeeded = currentAmp * safetyFactor;
-            const branchBreaker = getRecommendedBreaker(breakerAmpNeeded, l.totalWatt > 10000);
+            const baseBreakerType = l.breakerType ? l.breakerType.split(" ")[0] : "MCB";
+            const branchBreaker = getRecommendedBreaker(breakerAmpNeeded, false, `${baseBreakerType} ${l.phase === '3P' ? '3P' : '1P'}`);
             const branchCable = getRecommendedCable(
                 branchBreaker.rating, 
                 l.cableLength || 0, 
@@ -1544,7 +1601,7 @@
 
             let coreBadgeText = l.cableCoreSelect === 'AUTO' 
                 ? (l.phase === '3P' ? '4-Core (R,S,T,N)' : '3-Core (P,N,G)') 
-                : `${l.cableCoreSelect} (${l.phase === '3P' ? '3P' : '1P'})`;
+                : (l.cableCoreSelect === '3C_RST' ? '3-Core (R,S,T)' : `${l.cableCoreSelect} (${l.phase === '3P' ? '3P' : '1P'})`);
 
             let gndBadgeText = (l.groundType === "INTEGRATED" || l.phase !== '3P') ? 'Integrated' : '+ NYA Ground';
 
@@ -1558,7 +1615,7 @@
                 <td>${wS ? wS.toLocaleString('id-ID') : '-'}</td>
                 <td>${wT ? wT.toLocaleString('id-ID') : '-'}</td>
                 <td><strong>${currentAmp.toFixed(1)} A</strong></td>
-                <td><span class="badge badge-phase-r">${l.breakerType} ${branchBreaker.rating}A</span></td>
+                <td><span class="badge badge-phase-r">${branchBreaker.type} ${branchBreaker.rating}A</span></td>
                 <td>
                     <div style="font-size:11px;">
                         <span class="badge badge-phase-s" style="margin-bottom:2px;">📌 ${coreBadgeText}</span> 
@@ -1589,7 +1646,7 @@
         }
 
         const designCurrent = mainIncomerCurrent * safetyFactor;
-        const mainBreaker = getRecommendedBreaker(designCurrent, true);
+        const mainBreaker = getDynamicMainBreaker(designCurrent);
         const mainCable = getRecommendedCable(mainBreaker.rating, mainCableLen, mainCableType, sysPhase === '3P', mainCableCore, mainGroundType, mainConduitOption);
         const panelDimensionText = getSelectedPanelDimensions(mainBreaker.rating);
 
@@ -1629,7 +1686,7 @@
         document.getElementById('dispDemandWatt').innerText = `${(grandDemandWatt / 1000).toFixed(2)} kW`;
         document.getElementById('dispDemandAmp').innerText = `${mainIncomerCurrent.toFixed(1)} A (Nominal Load)`;
         document.getElementById('dispMainBreaker').innerText = `${mainBreaker.type} ${mainBreaker.rating}A`;
-        document.getElementById('dispBreakerSpec').innerText = `Rating ${mainBreaker.rating}A (Design: ${designCurrent.toFixed(1)}A)`;
+        document.getElementById('dispBreakerSpec').innerText = `${mainBreaker.usage}`;
         document.getElementById('dispMainCable').innerText = mainCable.cableText;
         document.getElementById('dispKHA').innerText = `L=${mainCableLen}m | \Delta V: ${mainCable.vDropPct.toFixed(2)}% (${mainCable.conduitText})`;
 
@@ -1661,8 +1718,8 @@
         sldText += `└───────────────────────────┬────────────────────────────────────────────────────────────┘\n`;
         sldText += `                            │\n`;
         sldText += `                         ┌──┴──┐\n`;
-        sldText += `                         │     │ [MAIN INCOMER BREAKER]\n`;
-        sldText += `                         │  /  │ ${mainBreaker.type} 3P ${mainBreaker.rating}A (Isc: 36kA)\n`;
+        sldText += `                         │     │ [MAIN INCOMER BREAKER: ${mainBreaker.type} ${mainBreaker.rating}A]\n`;
+        sldText += `                         │  /  │ Usage: ${mainBreaker.usage}\n`;
         sldText += `                         │     │ ${calculatedSummary.recommendedCT} + Metering (V, A, Hz, kW)\n`;
         sldText += `                         └──┬──┘\n`;
         sldText += `                            │\n`;
@@ -1677,7 +1734,7 @@
                 const cbl = l.branchCable || getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES");
 
                 sldText += `    │\n`;
-                sldText += `    ├─── [CB #${(idx+1).toString().padStart(2, '0')}] ───> ${l.breakerType} ${brk.rating}A  (${l.starter})\n`;
+                sldText += `    ├─── [CB #${(idx+1).toString().padStart(2, '0')}] ───> ${brk.type} ${brk.rating}A  (${l.starter})\n`;
                 sldText += `    │                    ├──> Cable  : ${cbl.cableText} (Panjang: ${l.cableLength || 0}m)\n`;
                 sldText += `    │                    ├──> Drop V : ${cbl.vDropPct.toFixed(2)}% | Conduit: ${cbl.conduitText}\n`;
                 sldText += `    │                    └──> Load   : ${l.tag} (${l.totalWatt}W / ${currentAmp.toFixed(1)}A) [Phase ${l.phase}]\n`;
@@ -1707,6 +1764,7 @@
         rows.push(["Panel:", panelName]);
         rows.push(["Tipe Panel:", calculatedSummary.panelTypeVal]);
         rows.push(["Ukuran Panel:", calculatedSummary.panelDimensionText]);
+        rows.push(["Rekomendasi Main Breaker:", calculatedSummary.mainBreaker ? `${calculatedSummary.mainBreaker.type} ${calculatedSummary.mainBreaker.rating}A (${calculatedSummary.mainBreaker.usage})` : ""]);
         rows.push(["Spesifikasi Busbar Utama:", calculatedSummary.recommendedBusbar]);
         rows.push(["Spesifikasi CT Transformer:", calculatedSummary.recommendedCT]);
         rows.push(["Disusun Oleh:", calculatedSummary.prepByVal]);
@@ -1725,7 +1783,7 @@
                 idx + 1, l.tag, l.category, l.starter, `${l.rawVal} ${l.unit}`, l.qty,
                 l.totalWatt, l.df, l.wR || 0, l.wS || 0, l.wT || 0,
                 parseFloat((l.calculatedAmp || 0).toFixed(2)),
-                `${l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
+                `${l.branchBreaker ? l.branchBreaker.type : l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
                 l.cableTypeSelect || "NYY", l.cableCoreSelect || "AUTO",
                 l.branchCable ? l.branchCable.cableText : '',
                 l.cableLength || 0,
@@ -1750,15 +1808,6 @@
             calculatedSummary.mainCable ? parseFloat(calculatedSummary.mainCable.vDropPct.toFixed(2)) : 0,
             calculatedSummary.mainCable ? calculatedSummary.mainCable.conduitText : ""
         ]);
-
-        rows.push([]);
-        rows.push([]);
-        rows.push(["OTORISASI & TANDA TANGAN PERSETUJUAN"]);
-        rows.push(["DISUSUN OLEH", "DIPERIKSA OLEH", "DISETUJUI OLEH"]);
-        rows.push(["[ Tanda Tangan ]", "[ Tanda Tangan ]", "[ Tanda Tangan ]"]);
-        rows.push([calculatedSummary.prepByVal, calculatedSummary.checkByVal, calculatedSummary.appByVal]);
-        rows.push(["Electrical Designer / Drafter", "Manager Engineering", "Project Manager"]);
-        rows.push([`Tgl: ${calculatedSummary.formattedPrepDate}`, "Tgl: ........................", "Tgl: ........................"]);
 
         const ws = XLSX.utils.aoa_to_sheet(rows);
         XLSX.utils.book_append_sheet(wb, ws, "Load Schedule");
@@ -1791,6 +1840,8 @@
             ["Disetujui Oleh (Project Manager)", calculatedSummary.appByVal || "-"],
             ["Tipe Panel (Enclosure)", calculatedSummary.panelTypeVal || "-"],
             ["Dimensi Ukuran Panel", calculatedSummary.panelDimensionText || "-"],
+            ["Rekomendasi Main Breaker", calculatedSummary.mainBreaker ? `${calculatedSummary.mainBreaker.type} ${calculatedSummary.mainBreaker.rating}A` : "-"],
+            ["Keterangan Penggunaan Breaker", calculatedSummary.mainBreaker ? calculatedSummary.mainBreaker.usage : "-"],
             ["Rekomendasi Busbar Utama", calculatedSummary.recommendedBusbar || "-"],
             ["Rekomendasi CT Transformer Metering", calculatedSummary.recommendedCT || "-"],
             ["Sumber Incomer Feeder", source],
@@ -1810,14 +1861,7 @@
             ["Rekomendasi Main Breaker", `${calculatedSummary.mainBreaker ? calculatedSummary.mainBreaker.type + " " + calculatedSummary.mainBreaker.rating + "A" : "-"}`],
             ["Rekomendasi Cable Feeder Main", calculatedSummary.mainCable ? calculatedSummary.mainCable.cableText : "-"],
             ["Drop Tegangan Feeder Main", calculatedSummary.mainCable ? `${calculatedSummary.mainCable.vDropPct.toFixed(2)}%` : "-"],
-            ["Unbalance Factor Fasa", `${calculatedSummary.unbalancePct || 0}%`],
-            [""],
-            ["OTORISASI & TANDA TANGAN PERSETUJUAN"],
-            ["DISUSUN OLEH", "DIPERIKSA OLEH", "DISETUJUI OLEH"],
-            ["[ Tanda Tangan ]", "[ Tanda Tangan ]", "[ Tanda Tangan ]"],
-            [calculatedSummary.prepByVal, calculatedSummary.checkByVal, calculatedSummary.appByVal],
-            ["Electrical Designer / Drafter", "Manager Engineering", "Project Manager"],
-            [`Tgl: ${calculatedSummary.formattedPrepDate}`, "Tgl: ........................", "Tgl: ........................"]
+            ["Unbalance Factor Fasa", `${calculatedSummary.unbalancePct || 0}%`]
         ];
         const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
         XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan Panel");
@@ -1841,7 +1885,7 @@
                 idx + 1, l.tag, l.category, l.starter, `${l.rawVal} ${l.unit}`, l.qty,
                 l.totalWatt, l.df, l.wR || 0, l.wS || 0, l.wT || 0,
                 parseFloat((l.calculatedAmp || 0).toFixed(2)),
-                `${l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
+                `${l.branchBreaker ? l.branchBreaker.type : l.breakerType} ${l.branchBreaker ? l.branchBreaker.rating : ''}A`,
                 l.cableTypeSelect || "NYY", l.cableCoreSelect || "AUTO",
                 l.branchCable ? l.branchCable.cableText : '',
                 l.cableLength || 0,
@@ -1849,15 +1893,6 @@
                 l.branchCable ? l.branchCable.conduitText : ''
             ]);
         });
-
-        scheduleRows.push([]);
-        scheduleRows.push([]);
-        scheduleRows.push(["OTORISASI & TANDA TANGAN PERSETUJUAN"]);
-        scheduleRows.push(["DISUSUN OLEH", "DIPERIKSA OLEH", "DISETUJUI OLEH"]);
-        scheduleRows.push(["[ Tanda Tangan ]", "[ Tanda Tangan ]", "[ Tanda Tangan ]"]);
-        scheduleRows.push([calculatedSummary.prepByVal, calculatedSummary.checkByVal, calculatedSummary.appByVal]);
-        scheduleRows.push(["Electrical Designer / Drafter", "Manager Engineering", "Project Manager"]);
-        scheduleRows.push([`Tgl: ${calculatedSummary.formattedPrepDate}`, "Tgl: ........................", "Tgl: ........................"]);
 
         const wsSchedule = XLSX.utils.aoa_to_sheet(scheduleRows);
         XLSX.utils.book_append_sheet(wb, wsSchedule, "Schedule Load");
