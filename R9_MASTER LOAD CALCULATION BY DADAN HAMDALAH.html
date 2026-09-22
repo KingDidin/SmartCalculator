@@ -1303,6 +1303,14 @@
     function isMachineLoad(load) {
         const machineCategories = ['MOTOR', 'HVAC'];
         const machineKeywords = /pompa|pump|fan|blower|motor|mesin|kompresor|compressor|ahu|hvac/i;
+        const fanKeywords = /\bfan\b|kipas|exhaust\s*fan|ceiling\s*fan/i;
+
+        // Beban fan tidak dinaikkan satu tingkat breaker karena starting current-nya
+        // diperlakukan seperti beban operasi normal pada kalkulasi ini.
+        if (fanKeywords.test(load.tag || '')) {
+            return false;
+        }
+
         return machineCategories.includes(load.category) || machineKeywords.test(load.tag || '');
     }
 
@@ -1600,7 +1608,8 @@
 
             let wR = 0, wS = 0, wT = 0;
             let currentAmp = 0;
-            const loadCosPhi = 0.9;
+            // Asumsi cos phi untuk seluruh beban sesuai standar kalkulasi proyek.
+            const loadCosPhi = 0.85;
 
             if (l.phase === '3P') {
                 wR = wS = wT = Math.round(l.totalWatt / 3);
@@ -1630,7 +1639,7 @@
                     branchBreaker.rating,
                     l.cableLength || 0,
                     l.cableTypeSelect || "NYY",
-                    isMachineLoad(l)
+                    true
                 )
                 : getRecommendedCable(
                     branchBreaker.rating,
@@ -1640,7 +1649,7 @@
                     l.cableCoreSelect || "AUTO",
                     l.groundType || "SEPARATE",
                     l.cableConduitOption || "YES",
-                    isMachineLoad(l)
+                    true
                 );
 
             l.calculatedAmp = currentAmp;
@@ -1800,8 +1809,8 @@
                 const currentAmp = l.calculatedAmp || 0;
                 const brk = l.branchBreaker || getRecommendedBreaker(currentAmp * 1.25);
                 const cbl = l.branchCable || (l.starter === 'SD'
-                    ? getStarDeltaCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", isMachineLoad(l))
-                    : getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES", isMachineLoad(l)));
+                    ? getStarDeltaCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", true)
+                    : getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES", true));
 
                 sldText += `    │\n`;
                 sldText += `    ├─── [CB #${(idx+1).toString().padStart(2, '0')}] ───> ${brk.type} ${brk.rating}A  (${l.starter})\n`;
