@@ -1631,15 +1631,12 @@
                 false,
                 `${baseBreakerType} ${l.phase === '3P' ? '3P' : '1P'}`
             );
-            if (isMachineLoad(l)) {
-                branchBreaker = increaseBreakerOneLevel(branchBreaker);
-            }
             const branchCable = l.starter === 'SD'
                 ? getStarDeltaCable(
                     branchBreaker.rating,
                     l.cableLength || 0,
                     l.cableTypeSelect || "NYY",
-                    true
+                    false
                 )
                 : getRecommendedCable(
                     branchBreaker.rating,
@@ -1649,7 +1646,7 @@
                     l.cableCoreSelect || "AUTO",
                     l.groundType || "SEPARATE",
                     l.cableConduitOption || "YES",
-                    true
+                    false
                 );
 
             l.calculatedAmp = currentAmp;
@@ -1722,8 +1719,8 @@
             mainCableCore,
             mainGroundType,
             mainConduitOption,
-            true,
-            true
+            false,
+            false
         );
         const panelDimensionText = getSelectedPanelDimensions(mainBreaker.rating);
 
@@ -1809,8 +1806,8 @@
                 const currentAmp = l.calculatedAmp || 0;
                 const brk = l.branchBreaker || getRecommendedBreaker(currentAmp * 1.25);
                 const cbl = l.branchCable || (l.starter === 'SD'
-                    ? getStarDeltaCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", true)
-                    : getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES", true));
+                    ? getStarDeltaCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", false)
+                    : getRecommendedCable(brk.rating, l.cableLength || 0, l.cableTypeSelect || "NYY", l.phase === '3P', l.cableCoreSelect || "AUTO", l.groundType || "SEPARATE", l.cableConduitOption || "YES", false));
 
                 sldText += `    │\n`;
                 sldText += `    ├─── [CB #${(idx+1).toString().padStart(2, '0')}] ───> ${brk.type} ${brk.rating}A  (${l.starter})\n`;
